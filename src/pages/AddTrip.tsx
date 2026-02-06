@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete';
 import { StopoverInput } from '@/components/forms/StopoverInput';
+import { TransportOptions } from '@/components/forms/TransportOptions';
 import { CityData } from '@/data/cities';
-import { Location, TransportType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
+import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Calendar, Save, Loader2 } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useCreateTrip } from '@/hooks/useTrips';
@@ -21,16 +22,38 @@ export default function AddTrip() {
   const navigate = useNavigate();
   const createTrip = useCreateTrip();
   
+  // Transport (first)
+  const [transportType, setTransportType] = useState<TransportType>('train');
+  const [company, setCompany] = useState('');
+  const [carType, setCarType] = useState<CarType | ''>('');
+  const [ticketNumber, setTicketNumber] = useState('');
+  const [seatNumber, setSeatNumber] = useState('');
+  const [bookingStatus, setBookingStatus] = useState<BookingStatus>('recherche');
+  
+  // Cities
   const [departure, setDeparture] = useState<CityData | null>(null);
   const [arrival, setArrival] = useState<CityData | null>(null);
   const [stopovers, setStopovers] = useState<Location[]>([]);
-  const [transportType, setTransportType] = useState<TransportType>('train');
+  
+  // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
+  const [departureTime, setDepartureTime] = useState('');
   const [returnDate, setReturnDate] = useState('');
+  const [arrivalTime, setArrivalTime] = useState('');
+  
+  // Distance & Notes
   const [distanceKm, setDistanceKm] = useState('');
   const [notes, setNotes] = useState('');
 
   const estimatedCo2 = distanceKm ? parseFloat(distanceKm) * co2PerKm[transportType] : 0;
+
+  const handleTransportTypeChange = (type: TransportType) => {
+    setTransportType(type);
+    setCompany('');
+    setCarType('');
+    setTicketNumber('');
+    setSeatNumber('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +77,15 @@ export default function AddTrip() {
         arrivalCountryName: arrival.countryName || arrival.city,
         via: stopovers.filter(s => s.city),
         departureDate,
+        departureTime: departureTime || undefined,
         returnDate: returnDate || undefined,
+        arrivalTime: arrivalTime || undefined,
         transportType,
+        company: company || undefined,
+        carType: carType || undefined,
+        ticketNumber: ticketNumber || undefined,
+        seatNumber: seatNumber || undefined,
+        bookingStatus,
         distanceKm: parseInt(distanceKm),
         notes: notes || undefined,
       });
@@ -83,6 +113,46 @@ export default function AddTrip() {
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 space-y-6">
+        {/* Transport Type - FIRST */}
+        <div className="space-y-3">
+          <Label className="text-muted-foreground">Type de transport</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {transportTypes.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => handleTransportTypeChange(type)}
+                className={cn(
+                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                  transportType === type
+                    ? `transport-${type} ring-2 ring-current`
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="text-2xl">{transportEmoji[type]}</span>
+                <span className="text-xs font-medium">{transportLabels[type]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Transport-specific options */}
+        <div className="glass-card p-4">
+          <TransportOptions
+            transportType={transportType}
+            company={company}
+            setCompany={setCompany}
+            carType={carType}
+            setCarType={setCarType}
+            ticketNumber={ticketNumber}
+            setTicketNumber={setTicketNumber}
+            seatNumber={seatNumber}
+            setSeatNumber={setSeatNumber}
+            bookingStatus={bookingStatus}
+            setBookingStatus={setBookingStatus}
+          />
+        </div>
+
         {/* Departure & Arrival */}
         <div className="glass-card p-4 space-y-4">
           <div className="space-y-2">
@@ -96,7 +166,7 @@ export default function AddTrip() {
 
           {departure && arrival && (
             <div className="flex justify-center py-2">
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="flag-emoji">{getFlag(departure.country)}</span>
                 <span>{departure.city}</span>
                 <ArrowRight className="w-4 h-4 text-primary" />
@@ -125,30 +195,7 @@ export default function AddTrip() {
           <StopoverInput stopovers={stopovers} onChange={setStopovers} />
         </div>
 
-        {/* Transport Type */}
-        <div className="space-y-3">
-          <Label className="text-muted-foreground">Type de transport</Label>
-          <div className="grid grid-cols-3 gap-2">
-            {transportTypes.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setTransportType(type)}
-                className={cn(
-                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
-                  transportType === type
-                    ? `transport-${type} ring-2 ring-current`
-                    : 'bg-secondary text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="text-2xl">{transportEmoji[type]}</span>
-                <span className="text-xs font-medium">{transportLabels[type]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Dates */}
+        {/* Dates & Times */}
         <div className="glass-card p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -165,13 +212,40 @@ export default function AddTrip() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Retour (optionnel)</Label>
+              <Label className="text-muted-foreground">Heure de départ</Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="time"
+                  value={departureTime}
+                  onChange={(e) => setDepartureTime(e.target.value)}
+                  className="input-glass pl-10"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Date retour (opt.)</Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="date"
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
+                  className="input-glass pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Heure arrivée</Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="time"
+                  value={arrivalTime}
+                  onChange={(e) => setArrivalTime(e.target.value)}
                   className="input-glass pl-10"
                 />
               </div>
