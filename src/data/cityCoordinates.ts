@@ -350,9 +350,18 @@ export function searchCities(query: string): CityData[] {
 }
 
 export function getCityCoordinates(cityName: string, countryCode: string): { lat: number; lng: number } | null {
-  const city = citiesWithCoordinates.find(
+  // First try exact match with country code
+  let city = citiesWithCoordinates.find(
     c => c.city.toLowerCase() === cityName.toLowerCase() && c.country === countryCode
   );
+  
+  // If not found and country code is empty or different, try matching by city name only
+  if (!city) {
+    city = citiesWithCoordinates.find(
+      c => c.city.toLowerCase() === cityName.toLowerCase()
+    );
+  }
+  
   return city ? { lat: city.lat, lng: city.lng } : null;
 }
 
