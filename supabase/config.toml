@@ -1,1 +1,4 @@
 project_id = "fqjbzcyuswepwpvoyabn"
+
+[functions.geocode-city]
+verify_jwt = false

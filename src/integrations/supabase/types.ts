@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_cities: {
+        Row: {
+          city: string
+          country: string
+          country_name: string
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          user_id: string
+        }
+        Insert: {
+          city: string
+          country: string
+          country_name: string
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          country_name?: string
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           created_at: string
