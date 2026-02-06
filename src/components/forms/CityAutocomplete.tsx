@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { searchCities, CityData, europeanCountries, isCityKnown } from '@/data/cityCoordinates';
+import { searchCities, CityData, europeanCountries } from '@/data/cityCoordinates';
 import { getFlag } from '@/types/trip';
-import { MapPin, Plus, X } from 'lucide-react';
+import { MapPin, Plus, X, Loader2, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGeocodeCity, useCustomCities } from '@/hooks/useGeocodeCity';
+import { useToast } from '@/hooks/use-toast';
 
 interface CityAutocompleteProps {
   value: CityData | null;
@@ -22,6 +24,10 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
   const [selectedCountry, setSelectedCountry] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const geocodeCity = useGeocodeCity();
+  const { data: customCities = [] } = useCustomCities();
 
   useEffect(() => {
     if (value) {
@@ -46,12 +52,30 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     setFocusedIndex(-1);
     
     if (newQuery.length >= 2) {
-      const results = searchCities(newQuery);
-      setSuggestions(results);
+      // Search in both static cities and custom cities
+      const staticResults = searchCities(newQuery);
+      
+      // Search in custom cities
+      const normalizedQuery = newQuery.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const customResults = customCities.filter(city => {
+        const normalizedCity = city.city.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const normalizedCountry = city.countryName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return normalizedCity.includes(normalizedQuery) || normalizedCountry.includes(normalizedQuery);
+      });
+
+      // Merge results, avoiding duplicates
+      const allResults = [...staticResults];
+      for (const custom of customResults) {
+        if (!allResults.some(r => r.city === custom.city && r.country === custom.country)) {
+          allResults.push(custom);
+        }
+      }
+
+      setSuggestions(allResults.slice(0, 10));
       setIsOpen(true);
       
       // If no results found and query is long enough, show add city option
-      if (results.length === 0 && newQuery.length >= 3) {
+      if (allResults.length === 0 && newQuery.length >= 3) {
         setNewCityName(newQuery);
       }
     } else {
@@ -68,21 +92,34 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     setShowAddCity(false);
   };
 
-  const handleAddCustomCity = () => {
-    if (newCityName && selectedCountry) {
-      const country = europeanCountries.find(c => c.code === selectedCountry);
-      if (country) {
-        const customCity: CityData = {
-          city: newCityName,
-          country: country.code,
-          countryName: country.name,
-          // No coordinates for custom cities
-        };
-        handleSelect(customCity);
-        setShowAddCity(false);
-        setNewCityName('');
-        setSelectedCountry('');
-      }
+  const handleAddCustomCity = async () => {
+    if (!newCityName || !selectedCountry) return;
+
+    const country = europeanCountries.find(c => c.code === selectedCountry);
+    if (!country) return;
+
+    try {
+      const geocodedCity = await geocodeCity.mutateAsync({
+        city: newCityName,
+        country: country.code,
+        countryName: country.name,
+      });
+
+      toast({
+        title: 'Ville trouvée ! 🎉',
+        description: `${geocodedCity.city}, ${geocodedCity.countryName} a été ajoutée.`,
+      });
+
+      handleSelect(geocodedCity);
+      setShowAddCity(false);
+      setNewCityName('');
+      setSelectedCountry('');
+    } catch (error) {
+      toast({
+        title: 'Ville non trouvée',
+        description: 'Impossible de trouver les coordonnées de cette ville. Vérifiez l\'orthographe.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -167,8 +204,8 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
             }}
             className="w-full"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter cette ville
+            <Search className="w-4 h-4 mr-2" />
+            Rechercher en ligne
           </Button>
         </div>
       )}
@@ -177,7 +214,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
       {showAddCity && (
         <div className="city-autocomplete animate-fade-in p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Ajouter une ville</span>
+            <span className="text-sm font-medium">Rechercher une ville</span>
             <Button
               type="button"
               variant="ghost"
@@ -215,14 +252,24 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
           <Button
             type="button"
             onClick={handleAddCustomCity}
-            disabled={!newCityName || !selectedCountry}
+            disabled={!newCityName || !selectedCountry || geocodeCity.isPending}
             className="w-full btn-primary"
           >
-            Ajouter
+            {geocodeCity.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Recherche...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Rechercher et ajouter
+              </>
+            )}
           </Button>
           
           <p className="text-xs text-muted-foreground">
-            ⚠️ La distance ne sera pas calculée automatiquement pour les villes personnalisées
+            🌍 La ville sera recherchée via OpenStreetMap et sauvegardée pour un usage futur.
           </p>
         </div>
       )}
