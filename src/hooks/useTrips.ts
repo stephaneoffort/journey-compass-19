@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Trip, TransportType, TripStatus, Location, co2PerKm } from '@/types/trip';
+import { Trip, TransportType, TripStatus, Location, BookingStatus, CarType, co2PerKm } from '@/types/trip';
 import { useAuth } from './useAuth';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -13,8 +13,15 @@ interface TripInsert {
   arrivalCountryName: string;
   via: Location[];
   departureDate: string;
+  departureTime?: string;
   returnDate?: string;
+  arrivalTime?: string;
   transportType: TransportType;
+  company?: string;
+  carType?: CarType;
+  ticketNumber?: string;
+  seatNumber?: string;
+  bookingStatus?: BookingStatus;
   distanceKm: number;
   status?: TripStatus;
   notes?: string;
@@ -31,8 +38,15 @@ function mapDbToTrip(row: any): Trip {
     arrivalCountryName: row.arrival_country_name,
     via: (row.via as Location[]) || [],
     departureDate: row.departure_date,
+    departureTime: row.departure_time,
     returnDate: row.return_date,
+    arrivalTime: row.arrival_time,
     transportType: row.transport_type as TransportType,
+    company: row.company,
+    carType: row.car_type as CarType | undefined,
+    ticketNumber: row.ticket_number,
+    seatNumber: row.seat_number,
+    bookingStatus: (row.booking_status as BookingStatus) || 'recherche',
     distanceKm: row.distance_km,
     co2Kg: parseFloat(row.co2_kg),
     status: row.status as TripStatus,
@@ -106,8 +120,15 @@ export function useCreateTrip() {
           arrival_country_name: trip.arrivalCountryName,
           via: trip.via as unknown as Json,
           departure_date: trip.departureDate,
+          departure_time: trip.departureTime || null,
           return_date: trip.returnDate || null,
+          arrival_time: trip.arrivalTime || null,
           transport_type: trip.transportType,
+          company: trip.company || null,
+          car_type: trip.carType || null,
+          ticket_number: trip.ticketNumber || null,
+          seat_number: trip.seatNumber || null,
+          booking_status: trip.bookingStatus || 'recherche',
           distance_km: trip.distanceKm,
           co2_kg: co2Kg,
           status: trip.status || 'planned',
@@ -140,13 +161,20 @@ export function useUpdateTrip() {
       if (updates.arrivalCountryName) updateData.arrival_country_name = updates.arrivalCountryName;
       if (updates.via) updateData.via = updates.via;
       if (updates.departureDate) updateData.departure_date = updates.departureDate;
+      if (updates.departureTime !== undefined) updateData.departure_time = updates.departureTime;
       if (updates.returnDate !== undefined) updateData.return_date = updates.returnDate;
+      if (updates.arrivalTime !== undefined) updateData.arrival_time = updates.arrivalTime;
       if (updates.transportType) {
         updateData.transport_type = updates.transportType;
         if (updates.distanceKm) {
           updateData.co2_kg = updates.distanceKm * co2PerKm[updates.transportType];
         }
       }
+      if (updates.company !== undefined) updateData.company = updates.company;
+      if (updates.carType !== undefined) updateData.car_type = updates.carType;
+      if (updates.ticketNumber !== undefined) updateData.ticket_number = updates.ticketNumber;
+      if (updates.seatNumber !== undefined) updateData.seat_number = updates.seatNumber;
+      if (updates.bookingStatus) updateData.booking_status = updates.bookingStatus;
       if (updates.distanceKm) {
         updateData.distance_km = updates.distanceKm;
         if (updates.transportType) {

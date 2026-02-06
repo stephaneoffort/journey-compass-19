@@ -87,17 +87,24 @@ export type Database = {
           arrival_city: string
           arrival_country: string
           arrival_country_name: string
+          arrival_time: string | null
+          booking_status: string | null
+          car_type: string | null
           co2_kg: number
+          company: string | null
           created_at: string
           departure_city: string
           departure_country: string
           departure_country_name: string
           departure_date: string
+          departure_time: string | null
           distance_km: number
           id: string
           notes: string | null
           return_date: string | null
+          seat_number: string | null
           status: string
+          ticket_number: string | null
           transport_type: string
           updated_at: string
           user_id: string
@@ -107,17 +114,24 @@ export type Database = {
           arrival_city: string
           arrival_country: string
           arrival_country_name: string
+          arrival_time?: string | null
+          booking_status?: string | null
+          car_type?: string | null
           co2_kg?: number
+          company?: string | null
           created_at?: string
           departure_city: string
           departure_country: string
           departure_country_name: string
           departure_date: string
+          departure_time?: string | null
           distance_km?: number
           id?: string
           notes?: string | null
           return_date?: string | null
+          seat_number?: string | null
           status?: string
+          ticket_number?: string | null
           transport_type: string
           updated_at?: string
           user_id: string
@@ -127,17 +141,24 @@ export type Database = {
           arrival_city?: string
           arrival_country?: string
           arrival_country_name?: string
+          arrival_time?: string | null
+          booking_status?: string | null
+          car_type?: string | null
           co2_kg?: number
+          company?: string | null
           created_at?: string
           departure_city?: string
           departure_country?: string
           departure_country_name?: string
           departure_date?: string
+          departure_time?: string | null
           distance_km?: number
           id?: string
           notes?: string | null
           return_date?: string | null
+          seat_number?: string | null
           status?: string
+          ticket_number?: string | null
           transport_type?: string
           updated_at?: string
           user_id?: string
