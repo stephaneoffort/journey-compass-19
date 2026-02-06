@@ -1,29 +1,42 @@
 import { PageLayout } from '@/components/layout/PageLayout';
-import { mockTrips, calculateStats } from '@/data/mockTrips';
+import { useTrips } from '@/hooks/useTrips';
 import { getFlag, transportEmoji } from '@/types/trip';
-import { Globe, MapPin } from 'lucide-react';
+import { Globe, MapPin, Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
 
 export default function MapView() {
-  const stats = calculateStats(mockTrips);
+  const { data: trips = [], isLoading } = useTrips();
   
-  // Get unique destinations
-  const destinations = new Map<string, { city: string; country: string; count: number }>();
-  mockTrips.forEach(trip => {
-    const key = `${trip.arrivalCity}-${trip.arrivalCountry}`;
-    const existing = destinations.get(key);
-    if (existing) {
-      existing.count++;
-    } else {
-      destinations.set(key, {
-        city: trip.arrivalCity,
-        country: trip.arrivalCountry,
-        count: 1,
-      });
-    }
-  });
+  const completedTrips = trips.filter(t => t.status === 'completed');
 
-  const sortedDestinations = Array.from(destinations.values())
-    .sort((a, b) => b.count - a.count);
+  // Get unique destinations
+  const destinations = useMemo(() => {
+    const map = new Map<string, { city: string; country: string; count: number }>();
+    trips.forEach(trip => {
+      const key = `${trip.arrivalCity}-${trip.arrivalCountry}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        map.set(key, {
+          city: trip.arrivalCity,
+          country: trip.arrivalCountry,
+          count: 1,
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [trips]);
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -44,76 +57,80 @@ export default function MapView() {
           </p>
           <div className="flex justify-center gap-4 text-sm">
             <div className="text-center">
-              <div className="stat-value text-2xl">{destinations.size}</div>
+              <div className="stat-value text-2xl">{destinations.length}</div>
               <div className="text-muted-foreground">Destinations</div>
             </div>
             <div className="text-center">
-              <div className="stat-value text-2xl">{stats.totalTrips}</div>
+              <div className="stat-value text-2xl">{completedTrips.length}</div>
               <div className="text-muted-foreground">Trajets</div>
             </div>
           </div>
         </div>
 
         {/* Destinations list */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4">Vos destinations</h2>
-          <div className="space-y-2">
-            {sortedDestinations.map((dest, index) => (
-              <div 
-                key={`${dest.city}-${dest.country}`}
-                className="glass-card p-4 flex items-center gap-4 animate-slide-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="flag-emoji text-xl">{getFlag(dest.country)}</span>
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">{dest.city}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {dest.count} trajet{dest.count > 1 ? 's' : ''}
+        {destinations.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Vos destinations</h2>
+            <div className="space-y-2">
+              {destinations.map((dest, index) => (
+                <div 
+                  key={`${dest.city}-${dest.country}`}
+                  className="glass-card p-4 flex items-center gap-4 animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="flag-emoji text-xl">{getFlag(dest.country)}</span>
                   </div>
+                  <div className="flex-1">
+                    <div className="font-medium">{dest.city}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {dest.count} trajet{dest.count > 1 ? 's' : ''}
+                    </div>
+                  </div>
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Recent routes */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4">Derniers itinéraires</h2>
-          <div className="space-y-2">
-            {mockTrips.slice(0, 5).map((trip, index) => (
-              <div 
-                key={trip.id}
-                className="glass-card p-4 flex items-center gap-3 animate-slide-up"
-                style={{ animationDelay: `${(sortedDestinations.length + index) * 50}ms` }}
-              >
-                <span className="text-xl">{transportEmoji[trip.transportType]}</span>
-                <div className="flex-1 flex items-center gap-2 text-sm">
-                  <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
-                  <span className="truncate">{trip.departureCity}</span>
-                  <span className="text-muted-foreground">→</span>
-                  {trip.via.length > 0 && (
-                    <>
-                      {trip.via.map((stop, i) => (
-                        <span key={i} className="flex items-center gap-1">
-                          <span className="flag-emoji">{getFlag(stop.country)}</span>
-                          <span className="text-muted-foreground">→</span>
-                        </span>
-                      ))}
-                    </>
-                  )}
-                  <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
-                  <span className="truncate">{trip.arrivalCity}</span>
+        {trips.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Derniers itinéraires</h2>
+            <div className="space-y-2">
+              {trips.slice(0, 5).map((trip, index) => (
+                <div 
+                  key={trip.id}
+                  className="glass-card p-4 flex items-center gap-3 animate-slide-up"
+                  style={{ animationDelay: `${(destinations.length + index) * 50}ms` }}
+                >
+                  <span className="text-xl">{transportEmoji[trip.transportType]}</span>
+                  <div className="flex-1 flex items-center gap-2 text-sm">
+                    <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
+                    <span className="truncate">{trip.departureCity}</span>
+                    <span className="text-muted-foreground">→</span>
+                    {trip.via.length > 0 && (
+                      <>
+                        {trip.via.map((stop, i) => (
+                          <span key={i} className="flex items-center gap-1">
+                            <span className="flag-emoji">{getFlag(stop.country)}</span>
+                            <span className="text-muted-foreground">→</span>
+                          </span>
+                        ))}
+                      </>
+                    )}
+                    <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
+                    <span className="truncate">{trip.arrivalCity}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {trip.distanceKm.toLocaleString('fr-FR')} km
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {trip.distanceKm.toLocaleString('fr-FR')} km
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </PageLayout>
   );

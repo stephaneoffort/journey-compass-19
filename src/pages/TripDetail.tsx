@@ -1,16 +1,36 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { mockTrips } from '@/data/mockTrips';
+import { useTrip, useDeleteTrip, useUpdateTrip } from '@/hooks/useTrips';
+import { useInvoices, useUploadInvoice, useDeleteInvoice } from '@/hooks/useInvoices';
 import { transportEmoji, transportLabels, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Route, Leaf, FileText, Upload, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, Calendar, Route, Leaf, FileText, Upload, Trash2, Edit, Loader2, X, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { useRef } from 'react';
 
 export default function TripDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const trip = mockTrips.find(t => t.id === id);
+  const { data: trip, isLoading } = useTrip(id || '');
+  const { data: invoices = [], isLoading: invoicesLoading } = useInvoices(id || '');
+  const deleteTrip = useDeleteTrip();
+  const updateTrip = useUpdateTrip();
+  const uploadInvoice = useUploadInvoice();
+  const deleteInvoice = useDeleteInvoice();
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </PageLayout>
+    );
+  }
 
   if (!trip) {
     return (
@@ -30,6 +50,55 @@ export default function TripDetail() {
     completed: { label: 'Terminé', class: 'bg-transport-train/20 text-transport-train' },
     planned: { label: 'Prévu', class: 'bg-transport-plane/20 text-transport-plane' },
     cancelled: { label: 'Annulé', class: 'bg-destructive/20 text-destructive' },
+  };
+
+  const handleDelete = async () => {
+    if (confirm('Supprimer ce trajet ?')) {
+      try {
+        await deleteTrip.mutateAsync(trip.id);
+        toast({ title: 'Trajet supprimé' });
+        navigate('/trips');
+      } catch {
+        toast({ title: 'Erreur', variant: 'destructive' });
+      }
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    try {
+      await updateTrip.mutateAsync({ 
+        id: trip.id, 
+        status: trip.status === 'completed' ? 'planned' : 'completed' 
+      });
+      toast({ 
+        title: trip.status === 'completed' ? 'Marqué comme prévu' : 'Marqué comme terminé ✓' 
+      });
+    } catch {
+      toast({ title: 'Erreur', variant: 'destructive' });
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await uploadInvoice.mutateAsync({ tripId: trip.id, file });
+      toast({ title: 'Justificatif ajouté !' });
+    } catch {
+      toast({ title: 'Erreur lors de l\'upload', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string, filePath: string) => {
+    if (confirm('Supprimer ce justificatif ?')) {
+      try {
+        await deleteInvoice.mutateAsync({ id: invoiceId, filePath, tripId: trip.id });
+        toast({ title: 'Justificatif supprimé' });
+      } catch {
+        toast({ title: 'Erreur', variant: 'destructive' });
+      }
+    }
   };
 
   return (
@@ -117,35 +186,92 @@ export default function TripDetail() {
             Justificatifs
           </h3>
           
-          {trip.invoiceUrls.length > 0 ? (
-            <div className="space-y-2">
-              {trip.invoiceUrls.map((url, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
+          {invoicesLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : invoices.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {invoices.map((invoice) => (
+                <div key={invoice.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
                   <FileText className="w-4 h-4 text-muted-foreground" />
-                  <span className="flex-1 text-sm truncate">{url}</span>
+                  <a 
+                    href={invoice.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex-1 text-sm truncate hover:text-primary"
+                  >
+                    {invoice.fileName}
+                  </a>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteInvoice(invoice.id, invoice.filePath)}
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-6 border-2 border-dashed border-border rounded-xl">
-              <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-3">Aucun justificatif</p>
-              <Button variant="outline" size="sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Ajouter un fichier
-              </Button>
-            </div>
-          )}
+          ) : null}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="text-center py-6 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors"
+          >
+            {uploadInvoice.isPending ? (
+              <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
+            ) : (
+              <>
+                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Cliquez pour ajouter un fichier
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PDF, JPG ou PNG
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Actions */}
         <div className="flex gap-3 animate-slide-up" style={{ animationDelay: '350ms' }}>
-          <Button variant="outline" className="flex-1">
-            <Edit className="w-4 h-4 mr-2" />
-            Modifier
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={handleMarkComplete}
+            disabled={updateTrip.isPending}
+          >
+            {updateTrip.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {trip.status === 'completed' ? 'Marquer prévu' : 'Marquer terminé'}
+              </>
+            )}
           </Button>
-          <Button variant="outline" className="text-destructive hover:bg-destructive/10">
-            <Trash2 className="w-4 h-4" />
+          <Button 
+            variant="outline" 
+            className="text-destructive hover:bg-destructive/10"
+            onClick={handleDelete}
+            disabled={deleteTrip.isPending}
+          >
+            {deleteTrip.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </div>

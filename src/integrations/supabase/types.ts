@@ -14,7 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      invoices: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          arrival_city: string
+          arrival_country: string
+          arrival_country_name: string
+          co2_kg: number
+          created_at: string
+          departure_city: string
+          departure_country: string
+          departure_country_name: string
+          departure_date: string
+          distance_km: number
+          id: string
+          notes: string | null
+          return_date: string | null
+          status: string
+          transport_type: string
+          updated_at: string
+          user_id: string
+          via: Json | null
+        }
+        Insert: {
+          arrival_city: string
+          arrival_country: string
+          arrival_country_name: string
+          co2_kg?: number
+          created_at?: string
+          departure_city: string
+          departure_country: string
+          departure_country_name: string
+          departure_date: string
+          distance_km?: number
+          id?: string
+          notes?: string | null
+          return_date?: string | null
+          status?: string
+          transport_type: string
+          updated_at?: string
+          user_id: string
+          via?: Json | null
+        }
+        Update: {
+          arrival_city?: string
+          arrival_country?: string
+          arrival_country_name?: string
+          co2_kg?: number
+          created_at?: string
+          departure_city?: string
+          departure_country?: string
+          departure_country_name?: string
+          departure_date?: string
+          distance_km?: number
+          id?: string
+          notes?: string | null
+          return_date?: string | null
+          status?: string
+          transport_type?: string
+          updated_at?: string
+          user_id?: string
+          via?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
