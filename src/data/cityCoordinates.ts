@@ -265,8 +265,9 @@ export const citiesWithCoordinates: CityWithCoordinates[] = [
   { city: 'Abidjan', country: 'CI', countryName: 'Côte d\'Ivoire', lat: 5.3600, lng: -4.0083 },
 ];
 
-// European countries (alphabetically sorted)
+// European countries (France first, then alphabetically sorted)
 const europeanCountriesList = [
+  { code: 'FR', name: 'France' },
   { code: 'AL', name: 'Albanie' },
   { code: 'DE', name: 'Allemagne' },
   { code: 'AD', name: 'Andorre' },
@@ -281,7 +282,6 @@ const europeanCountriesList = [
   { code: 'ES', name: 'Espagne' },
   { code: 'EE', name: 'Estonie' },
   { code: 'FI', name: 'Finlande' },
-  { code: 'FR', name: 'France' },
   { code: 'GR', name: 'Grèce' },
   { code: 'HU', name: 'Hongrie' },
   { code: 'IE', name: 'Irlande' },
