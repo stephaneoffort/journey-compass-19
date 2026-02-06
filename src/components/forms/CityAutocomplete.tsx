@@ -38,9 +38,15 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     }
   }, [value]);
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isInsideContainer = containerRef.current?.contains(target);
+      const isInsideDropdown = dropdownRef.current?.contains(target);
+      
+      if (!isInsideContainer && !isInsideDropdown) {
         setIsOpen(false);
         setShowAddCity(false);
       }
@@ -48,6 +54,9 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Check if we need to show no results
+  const noResultsFound = isOpen && suggestions.length === 0 && query.length >= 3;
 
   useLayoutEffect(() => {
     const updateRect = () => {
@@ -61,7 +70,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
       });
     };
 
-    if (isOpen || showAddCity) {
+    if (isOpen || showAddCity || noResultsFound) {
       updateRect();
       window.addEventListener('scroll', updateRect, true);
       window.addEventListener('resize', updateRect);
@@ -72,7 +81,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     }
 
     return;
-  }, [isOpen, showAddCity]);
+  }, [isOpen, showAddCity, noResultsFound]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
@@ -176,8 +185,6 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     }
   };
 
-  const noResultsFound = isOpen && suggestions.length === 0 && query.length >= 3;
-
   return (
     <div ref={containerRef} className={`relative ${isOpen ? 'z-[250]' : ''}`}> 
       <div className="relative">
@@ -216,7 +223,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
         };
 
         const content = (
-          <div style={style} className={`${baseClass} animate-fade-in`}>
+          <div ref={dropdownRef} style={style} className={`${baseClass} animate-fade-in`}>
             {shouldRenderSuggestions && (
               <>
                 {suggestions.map((city, index) => (
