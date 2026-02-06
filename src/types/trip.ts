@@ -55,6 +55,8 @@ export interface Location {
   city: string;
   country: string;
   countryName: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface Trip {
