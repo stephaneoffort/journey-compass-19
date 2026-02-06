@@ -1,19 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete';
 import { StopoverInput } from '@/components/forms/StopoverInput';
 import { TransportOptions } from '@/components/forms/TransportOptions';
-import { CityData } from '@/data/cities';
+import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Calendar, Clock, Save, Loader2 } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Save, Loader2, Route } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useCreateTrip } from '@/hooks/useTrips';
+import { calculateRouteDistance } from '@/utils/distance';
 
 const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro'];
 
@@ -43,7 +44,68 @@ export default function AddTrip() {
   
   // Distance & Notes
   const [distanceKm, setDistanceKm] = useState('');
+  const [manualDistance, setManualDistance] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // Calculate distance automatically when cities change
+  const calculatedDistance = useMemo(() => {
+    if (!departure || !arrival) return null;
+    
+    // Get coordinates for departure
+    const depCoords = departure.lat && departure.lng 
+      ? { lat: departure.lat, lng: departure.lng }
+      : getCityCoordinates(departure.city, departure.country);
+    
+    // Get coordinates for arrival
+    const arrCoords = arrival.lat && arrival.lng
+      ? { lat: arrival.lat, lng: arrival.lng }
+      : getCityCoordinates(arrival.city, arrival.country);
+    
+    if (!depCoords || !arrCoords) return null;
+    
+    // Build route points array
+    const routePoints: Array<{ lat: number; lng: number } | null> = [depCoords];
+    
+    // Add stopovers if they have coordinates
+    for (const stopover of stopovers) {
+      if (stopover.city) {
+        const stopCoords = stopover.lat && stopover.lng
+          ? { lat: stopover.lat, lng: stopover.lng }
+          : getCityCoordinates(stopover.city, stopover.country);
+        routePoints.push(stopCoords);
+      }
+    }
+    
+    routePoints.push(arrCoords);
+    
+    return calculateRouteDistance(routePoints);
+  }, [departure, arrival, stopovers]);
+
+  // Auto-update distance when calculated
+  useEffect(() => {
+    if (calculatedDistance !== null && !manualDistance) {
+      setDistanceKm(calculatedDistance.toString());
+    }
+  }, [calculatedDistance, manualDistance]);
+
+  // Check if all cities have coordinates
+  const allCitiesKnown = useMemo(() => {
+    if (!departure || !arrival) return false;
+    
+    const depHasCoords = (departure.lat && departure.lng) || getCityCoordinates(departure.city, departure.country);
+    const arrHasCoords = (arrival.lat && arrival.lng) || getCityCoordinates(arrival.city, arrival.country);
+    
+    if (!depHasCoords || !arrHasCoords) return false;
+    
+    for (const stopover of stopovers) {
+      if (stopover.city) {
+        const stopHasCoords = (stopover.lat && stopover.lng) || getCityCoordinates(stopover.city, stopover.country);
+        if (!stopHasCoords) return false;
+      }
+    }
+    
+    return true;
+  }, [departure, arrival, stopovers]);
 
   const estimatedCo2 = distanceKm ? parseFloat(distanceKm) * co2PerKm[transportType] : 0;
 
@@ -55,17 +117,33 @@ export default function AddTrip() {
     setSeatNumber('');
   };
 
+  const handleManualDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setManualDistance(true);
+    setDistanceKm(e.target.value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!departure || !arrival || !departureDate || !distanceKm) {
+    if (!departure || !arrival || !departureDate) {
       toast({
         title: 'Champs requis',
-        description: 'Veuillez remplir tous les champs obligatoires.',
+        description: 'Veuillez remplir les villes et la date de départ.',
         variant: 'destructive',
       });
       return;
     }
+
+    if (!distanceKm && !allCitiesKnown) {
+      toast({
+        title: 'Distance requise',
+        description: 'Veuillez saisir la distance manuellement pour les villes non reconnues.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const finalDistance = distanceKm ? parseInt(distanceKm) : 0;
 
     try {
       await createTrip.mutateAsync({
@@ -86,7 +164,7 @@ export default function AddTrip() {
         ticketNumber: ticketNumber || undefined,
         seatNumber: seatNumber || undefined,
         bookingStatus,
-        distanceKm: parseInt(distanceKm),
+        distanceKm: finalDistance,
         notes: notes || undefined,
       });
 
@@ -256,15 +334,28 @@ export default function AddTrip() {
         {/* Distance & CO2 */}
         <div className="glass-card p-4 space-y-4">
           <div className="space-y-2">
-            <Label className="text-muted-foreground">Distance (km)</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-muted-foreground">Distance (km)</Label>
+              {calculatedDistance !== null && (
+                <span className="text-xs text-primary flex items-center gap-1">
+                  <Route className="w-3 h-3" />
+                  Calculée automatiquement
+                </span>
+              )}
+            </div>
             <Input
               type="number"
               value={distanceKm}
-              onChange={(e) => setDistanceKm(e.target.value)}
-              placeholder="Ex: 450"
+              onChange={handleManualDistanceChange}
+              placeholder={allCitiesKnown ? "Calculée automatiquement" : "Saisir la distance"}
               className="input-glass"
-              required
+              required={!allCitiesKnown}
             />
+            {!allCitiesKnown && departure && arrival && (
+              <p className="text-xs text-destructive">
+                ⚠️ Une ou plusieurs villes ne sont pas reconnues. Veuillez saisir la distance manuellement.
+              </p>
+            )}
           </div>
           
           {estimatedCo2 > 0 && (

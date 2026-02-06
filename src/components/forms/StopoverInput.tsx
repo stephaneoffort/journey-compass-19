@@ -1,6 +1,6 @@
 import { Location, getFlag } from '@/types/trip';
 import { CityAutocomplete } from './CityAutocomplete';
-import { CityData } from '@/data/cities';
+import { CityData } from '@/data/cityCoordinates';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 
@@ -25,6 +25,8 @@ export function StopoverInput({ stopovers, onChange }: StopoverInputProps) {
       city: city.city,
       country: city.country,
       countryName: city.countryName,
+      lat: city.lat,
+      lng: city.lng,
     };
     onChange(updated);
   };
@@ -54,7 +56,9 @@ export function StopoverInput({ stopovers, onChange }: StopoverInputProps) {
                   value={stopover.city ? { 
                     city: stopover.city, 
                     country: stopover.country, 
-                    countryName: stopover.countryName 
+                    countryName: stopover.countryName,
+                    lat: stopover.lat,
+                    lng: stopover.lng,
                   } : null}
                   onChange={(city) => updateStopover(index, city)}
                   placeholder={`Escale ${index + 1}`}
