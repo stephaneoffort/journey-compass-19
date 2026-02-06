@@ -1,0 +1,17 @@
+{
+  "name": "TripTracker",
+  "short_name": "TripTracker",
+  "description": "Suivez vos déplacements professionnels et calculez votre empreinte CO₂",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
