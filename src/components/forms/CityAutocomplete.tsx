@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { searchCities, CityData, europeanCountries } from '@/data/cityCoordinates';
@@ -22,6 +23,8 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
   const [showAddCity, setShowAddCity] = useState(false);
   const [newCityName, setNewCityName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -45,6 +48,31 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useLayoutEffect(() => {
+    const updateRect = () => {
+      const el = inputRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setDropdownRect({
+        top: r.bottom + 4,
+        left: r.left,
+        width: r.width,
+      });
+    };
+
+    if (isOpen || showAddCity) {
+      updateRect();
+      window.addEventListener('scroll', updateRect, true);
+      window.addEventListener('resize', updateRect);
+      return () => {
+        window.removeEventListener('scroll', updateRect, true);
+        window.removeEventListener('resize', updateRect);
+      };
+    }
+
+    return;
+  }, [isOpen, showAddCity]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
@@ -170,109 +198,131 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
         )}
       </div>
 
-      {isOpen && suggestions.length > 0 && (
-        <div className="city-autocomplete animate-fade-in">
-          {suggestions.map((city, index) => (
-            <div
-              key={`${city.city}-${city.country}`}
-              onClick={() => handleSelect(city)}
-              className={`city-option ${focusedIndex === index ? 'bg-accent' : ''}`}
-            >
-              <span className="flag-emoji">{getFlag(city.country)}</span>
-              <div className="flex-1">
-                <div className="font-medium">{city.city}</div>
-                <div className="text-xs text-muted-foreground">{city.countryName}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {(() => {
+        const shouldRenderSuggestions = isOpen && suggestions.length > 0;
+        const shouldRenderNoResults = noResultsFound && !showAddCity;
+        const shouldRenderAddCity = showAddCity;
 
-      {/* No results - show add city option */}
-      {noResultsFound && !showAddCity && (
-        <div className="city-autocomplete animate-fade-in p-3">
-          <p className="text-sm text-muted-foreground mb-2">
-            Aucune ville trouvée pour "{query}"
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setShowAddCity(true);
-              setNewCityName(query);
-            }}
-            className="w-full"
-          >
-            <Search className="w-4 h-4 mr-2" />
-            Rechercher en ligne
-          </Button>
-        </div>
-      )}
+        if (!dropdownRect) return null;
+        if (!shouldRenderSuggestions && !shouldRenderNoResults && !shouldRenderAddCity) return null;
 
-      {/* Add custom city form */}
-      {showAddCity && (
-        <div className="city-autocomplete animate-fade-in p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Rechercher une ville</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowAddCity(false)}
-              className="h-6 w-6"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <Input
-            value={newCityName}
-            onChange={(e) => setNewCityName(e.target.value)}
-            placeholder="Nom de la ville"
-            className="input-glass"
-          />
-          
-          <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-            <SelectTrigger className="input-glass">
-              <SelectValue placeholder="Choisir un pays" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border max-h-60">
-              {europeanCountries.map((country) => (
-                <SelectItem key={country.code} value={country.code}>
-                  <span className="flex items-center gap-2">
-                    <span className="flag-emoji">{getFlag(country.code)}</span>
-                    {country.name}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Button
-            type="button"
-            onClick={handleAddCustomCity}
-            disabled={!newCityName || !selectedCountry || geocodeCity.isPending}
-            className="w-full btn-primary"
-          >
-            {geocodeCity.isPending ? (
+        const baseClass = "bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto";
+        const style: CSSProperties = {
+          position: 'fixed',
+          top: dropdownRect.top,
+          left: dropdownRect.left,
+          width: dropdownRect.width,
+          zIndex: 2000,
+        };
+
+        const content = (
+          <div style={style} className={`${baseClass} animate-fade-in`}>
+            {shouldRenderSuggestions && (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Recherche...
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4 mr-2" />
-                Rechercher et ajouter
+                {suggestions.map((city, index) => (
+                  <div
+                    key={`${city.city}-${city.country}`}
+                    onClick={() => handleSelect(city)}
+                    className={`city-option ${focusedIndex === index ? 'bg-accent' : ''}`}
+                  >
+                    <span className="flag-emoji">{getFlag(city.country)}</span>
+                    <div className="flex-1">
+                      <div className="font-medium">{city.city}</div>
+                      <div className="text-xs text-muted-foreground">{city.countryName}</div>
+                    </div>
+                  </div>
+                ))}
               </>
             )}
-          </Button>
-          
-          <p className="text-xs text-muted-foreground">
-            🌍 La ville sera recherchée via OpenStreetMap et sauvegardée pour un usage futur.
-          </p>
-        </div>
-      )}
+
+            {shouldRenderNoResults && (
+              <div className="p-3">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Aucune ville trouvée pour "{query}"
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowAddCity(true);
+                    setNewCityName(query);
+                  }}
+                  className="w-full"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Rechercher en ligne
+                </Button>
+              </div>
+            )}
+
+            {shouldRenderAddCity && (
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Rechercher une ville</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowAddCity(false)}
+                    className="h-6 w-6"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <Input
+                  value={newCityName}
+                  onChange={(e) => setNewCityName(e.target.value)}
+                  placeholder="Nom de la ville"
+                  className="input-glass"
+                />
+
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger className="input-glass">
+                    <SelectValue placeholder="Choisir un pays" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border max-h-60">
+                    {europeanCountries.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        <span className="flex items-center gap-2">
+                          <span className="flag-emoji">{getFlag(country.code)}</span>
+                          {country.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  type="button"
+                  onClick={handleAddCustomCity}
+                  disabled={!newCityName || !selectedCountry || geocodeCity.isPending}
+                  className="w-full btn-primary"
+                >
+                  {geocodeCity.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Recherche...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Rechercher et ajouter
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-muted-foreground">
+                  🌍 La ville sera recherchée via OpenStreetMap et sauvegardée pour un usage futur.
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+        return createPortal(content, document.body);
+      })()}
     </div>
   );
 }
