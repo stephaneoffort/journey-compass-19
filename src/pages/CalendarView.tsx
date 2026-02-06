@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
-import { mockTrips } from '@/data/mockTrips';
+import { useTrips } from '@/hooks/useTrips';
 import { transportEmoji, getFlag } from '@/types/trip';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function CalendarView() {
+  const { data: trips = [], isLoading } = useTrips();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
@@ -17,14 +18,14 @@ export default function CalendarView() {
   const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
   const tripsByDate = useMemo(() => {
-    const map: Record<string, typeof mockTrips> = {};
-    mockTrips.forEach(trip => {
+    const map: Record<string, typeof trips> = {};
+    trips.forEach(trip => {
       const dateKey = trip.departureDate;
       if (!map[dateKey]) map[dateKey] = [];
       map[dateKey].push(trip);
     });
     return map;
-  }, []);
+  }, [trips]);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const selectedTrips = selectedDate ? tripsByDate[selectedDate] || [] : [];
@@ -43,6 +44,16 @@ export default function CalendarView() {
   }
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(day);
+  }
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </PageLayout>
+    );
   }
 
   return (

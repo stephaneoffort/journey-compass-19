@@ -9,15 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Calendar, Save } from 'lucide-react';
+import { ArrowRight, Calendar, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useCreateTrip } from '@/hooks/useTrips';
 
 const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro'];
 
 export default function AddTrip() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const createTrip = useCreateTrip();
   
   const [departure, setDeparture] = useState<CityData | null>(null);
   const [arrival, setArrival] = useState<CityData | null>(null);
@@ -30,7 +32,7 @@ export default function AddTrip() {
 
   const estimatedCo2 = distanceKm ? parseFloat(distanceKm) * co2PerKm[transportType] : 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!departure || !arrival || !departureDate || !distanceKm) {
@@ -42,12 +44,35 @@ export default function AddTrip() {
       return;
     }
 
-    toast({
-      title: 'Trajet enregistré ! 🎉',
-      description: `${departure.city} → ${arrival.city}`,
-    });
+    try {
+      await createTrip.mutateAsync({
+        departureCity: departure.city,
+        departureCountry: departure.country || 'XX',
+        departureCountryName: departure.countryName || departure.city,
+        arrivalCity: arrival.city,
+        arrivalCountry: arrival.country || 'XX',
+        arrivalCountryName: arrival.countryName || arrival.city,
+        via: stopovers.filter(s => s.city),
+        departureDate,
+        returnDate: returnDate || undefined,
+        transportType,
+        distanceKm: parseInt(distanceKm),
+        notes: notes || undefined,
+      });
 
-    navigate('/trips');
+      toast({
+        title: 'Trajet enregistré ! 🎉',
+        description: `${departure.city} → ${arrival.city}`,
+      });
+
+      navigate('/trips');
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de l\'enregistrement.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -194,9 +219,19 @@ export default function AddTrip() {
         </div>
 
         {/* Submit */}
-        <Button type="submit" className="btn-primary w-full">
-          <Save className="w-4 h-4 mr-2" />
-          Enregistrer le trajet
+        <Button 
+          type="submit" 
+          className="btn-primary w-full" 
+          disabled={createTrip.isPending}
+        >
+          {createTrip.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Enregistrer le trajet
+            </>
+          )}
         </Button>
       </form>
     </PageLayout>
