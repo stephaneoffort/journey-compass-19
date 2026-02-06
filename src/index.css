@@ -211,7 +211,7 @@
   }
   
   .city-autocomplete {
-    @apply absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg z-[100] overflow-hidden max-h-64 overflow-y-auto;
+    @apply absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg z-[300] overflow-hidden max-h-64 overflow-y-auto;
   }
   
   .city-option {

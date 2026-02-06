@@ -151,7 +151,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
   const noResultsFound = isOpen && suggestions.length === 0 && query.length >= 3;
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className={`relative ${isOpen ? 'z-[250]' : ''}`}> 
       <div className="relative">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
