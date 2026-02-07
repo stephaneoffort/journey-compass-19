@@ -42,9 +42,10 @@ export default function AddTrip() {
   const [returnDate, setReturnDate] = useState('');
   const [arrivalTime, setArrivalTime] = useState('');
   
-  // Distance & Notes
+  // Distance & Price & Notes
   const [distanceKm, setDistanceKm] = useState('');
   const [manualDistance, setManualDistance] = useState(false);
+  const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
 
   // Calculate distance automatically when cities change
@@ -142,6 +143,16 @@ export default function AddTrip() {
       return;
     }
 
+    // Price is required when booking status is 'trouve' or 'achete'
+    if ((bookingStatus === 'trouve' || bookingStatus === 'achete') && !price) {
+      toast({
+        title: 'Prix requis',
+        description: 'Veuillez saisir le prix du trajet.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!distanceKm && !allCitiesKnown) {
       toast({
         title: 'Distance requise',
@@ -172,6 +183,7 @@ export default function AddTrip() {
         ticketNumber: ticketNumber || undefined,
         seatNumber: seatNumber || undefined,
         bookingStatus,
+        price: price ? parseFloat(price) : undefined,
         distanceKm: finalDistance,
         notes: notes || undefined,
       });
@@ -223,7 +235,7 @@ export default function AddTrip() {
         </div>
 
         {/* Transport-specific options */}
-        <div className="glass-card p-4">
+        <div className="glass-card p-4 space-y-4">
           <TransportOptions
             transportType={transportType}
             company={company}
@@ -237,6 +249,25 @@ export default function AddTrip() {
             bookingStatus={bookingStatus}
             setBookingStatus={setBookingStatus}
           />
+
+          {/* Price field - required when booking status is 'trouve' or 'achete' */}
+          {(bookingStatus === 'trouve' || bookingStatus === 'achete') && (
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">
+                Prix (€) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="Ex: 125.50"
+                className="input-glass"
+                required
+              />
+            </div>
+          )}
         </div>
 
         {/* Departure & Arrival */}

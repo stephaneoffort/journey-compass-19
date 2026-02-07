@@ -22,6 +22,7 @@ interface TripInsert {
   ticketNumber?: string;
   seatNumber?: string;
   bookingStatus?: BookingStatus;
+  price?: number;
   distanceKm: number;
   status?: TripStatus;
   notes?: string;
@@ -47,6 +48,7 @@ function mapDbToTrip(row: any): Trip {
     ticketNumber: row.ticket_number,
     seatNumber: row.seat_number,
     bookingStatus: (row.booking_status as BookingStatus) || 'recherche',
+    price: row.price ? parseFloat(row.price) : undefined,
     distanceKm: row.distance_km,
     co2Kg: parseFloat(row.co2_kg),
     status: row.status as TripStatus,
@@ -129,6 +131,7 @@ export function useCreateTrip() {
           ticket_number: trip.ticketNumber || null,
           seat_number: trip.seatNumber || null,
           booking_status: trip.bookingStatus || 'recherche',
+          price: trip.price || null,
           distance_km: trip.distanceKm,
           co2_kg: co2Kg,
           status: trip.status || 'planned',

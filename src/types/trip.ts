@@ -78,6 +78,7 @@ export interface Trip {
   ticketNumber?: string;
   seatNumber?: string;
   bookingStatus: BookingStatus;
+  price?: number;
   distanceKm: number;
   co2Kg: number;
   status: TripStatus;
