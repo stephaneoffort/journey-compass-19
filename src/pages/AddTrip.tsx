@@ -83,10 +83,18 @@ export default function AddTrip() {
 
   // Auto-update distance when calculated
   useEffect(() => {
+    console.log('[AddTrip] distance recompute', {
+      departure,
+      arrival,
+      stopovers,
+      calculatedDistance,
+      manualDistance,
+    });
+
     if (calculatedDistance !== null && !manualDistance) {
       setDistanceKm(calculatedDistance.toString());
     }
-  }, [calculatedDistance, manualDistance]);
+  }, [calculatedDistance, manualDistance, departure, arrival, stopovers]);
 
   // Check if all cities have coordinates
   const allCitiesKnown = useMemo(() => {

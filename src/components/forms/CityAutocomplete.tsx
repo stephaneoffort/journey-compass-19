@@ -135,12 +135,20 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     const country = europeanCountries.find(c => c.code === selectedCountry);
     if (!country) return;
 
+    console.log('[CityAutocomplete] geocode start', {
+      city: newCityName,
+      country: country.code,
+      countryName: country.name,
+    });
+
     try {
       const geocodedCity = await geocodeCity.mutateAsync({
         city: newCityName,
         country: country.code,
         countryName: country.name,
       });
+
+      console.log('[CityAutocomplete] geocode success', geocodedCity);
 
       toast({
         title: 'Ville trouvée ! 🎉',
@@ -152,6 +160,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
       setNewCityName('');
       setSelectedCountry('');
     } catch (error) {
+      console.error('[CityAutocomplete] geocode error', error);
       toast({
         title: 'Ville non trouvée',
         description: 'Impossible de trouver les coordonnées de cette ville. Vérifiez l\'orthographe.',
