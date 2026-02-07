@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { generateVoyagePDF } from '@/utils/voyagePDF';
+import { generateVoyageExcel } from '@/utils/voyageExcel';
 
 export default function VoyageDetail() {
   const { id } = useParams();
@@ -217,10 +217,10 @@ export default function VoyageDetail() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => generateVoyagePDF(voyage)}
+            onClick={() => generateVoyageExcel(voyage)}
           >
             <Download className="w-4 h-4 mr-2" />
-            Télécharger la feuille de calculs
+            Télécharger la feuille de calculs (.xlsx)
           </Button>
           
           <Button
