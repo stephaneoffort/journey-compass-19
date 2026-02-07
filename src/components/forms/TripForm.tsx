@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { CityAutocomplete } from './CityAutocomplete';
 import { StationAutocomplete } from './StationAutocomplete';
+import { TrainStationSelect } from './TrainStationSelect';
 import { StopoverInput } from './StopoverInput';
 import { TransportOptions } from './TransportOptions';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
@@ -68,6 +69,10 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
   // Metro stations (for Paris metro trips)
   const [departureStation, setDepartureStation] = useState<Station | null>(null);
   const [arrivalStation, setArrivalStation] = useState<Station | null>(null);
+  
+  // Train stations (for French train trips)
+  const [departureTrainStation, setDepartureTrainStation] = useState<string | null>(null);
+  const [arrivalTrainStation, setArrivalTrainStation] = useState<string | null>(null);
   
   // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
@@ -442,17 +447,31 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               <Label className="text-muted-foreground">Départ</Label>
               <CityAutocomplete
                 value={departure}
-                onChange={setDeparture}
+                onChange={(city) => {
+                  setDeparture(city);
+                  setDepartureTrainStation(null);
+                }}
                 placeholder="Ville de départ"
               />
               {errors.departure && <p className="text-xs text-destructive">{errors.departure}</p>}
+              
+              {/* Train station selector for French cities */}
+              {transportType === 'train' && departure && (
+                <TrainStationSelect
+                  cityName={departure.city}
+                  countryCode={departure.country}
+                  value={departureTrainStation}
+                  onChange={setDepartureTrainStation}
+                  label="Gare de départ"
+                />
+              )}
             </div>
 
             {departure && arrival && (
               <div className="flex justify-center py-2">
                 <div className="flex items-center gap-2 text-sm flex-wrap">
                   <span className="flag-emoji">{getFlag(departure.country)}</span>
-                  <span>{departure.city}</span>
+                  <span>{departureTrainStation || departure.city}</span>
                   <ArrowRight className="w-4 h-4 text-primary" />
                   {stopovers.filter(s => s.city).map((stop, i) => (
                     <span key={i} className="flex items-center gap-2">
@@ -462,7 +481,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                     </span>
                   ))}
                   <span className="flag-emoji">{getFlag(arrival.country)}</span>
-                  <span>{arrival.city}</span>
+                  <span>{arrivalTrainStation || arrival.city}</span>
                 </div>
               </div>
             )}
@@ -471,10 +490,24 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               <Label className="text-muted-foreground">Arrivée</Label>
               <CityAutocomplete
                 value={arrival}
-                onChange={setArrival}
+                onChange={(city) => {
+                  setArrival(city);
+                  setArrivalTrainStation(null);
+                }}
                 placeholder="Ville d'arrivée"
               />
               {errors.arrival && <p className="text-xs text-destructive">{errors.arrival}</p>}
+              
+              {/* Train station selector for French cities */}
+              {transportType === 'train' && arrival && (
+                <TrainStationSelect
+                  cityName={arrival.city}
+                  countryCode={arrival.country}
+                  value={arrivalTrainStation}
+                  onChange={setArrivalTrainStation}
+                  label="Gare d'arrivée"
+                />
+              )}
             </div>
 
             <StopoverInput stopovers={stopovers} onChange={setStopovers} />
