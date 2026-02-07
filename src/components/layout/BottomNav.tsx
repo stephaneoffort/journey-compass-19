@@ -1,10 +1,10 @@
-import { Home, List, Calendar, Map, Plus } from 'lucide-react';
+import { Home, Briefcase, Calendar, Map, Plus } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: Home, label: 'Accueil', path: '/' },
-  { icon: List, label: 'Trajets', path: '/trips' },
+  { icon: Briefcase, label: 'Voyages', path: '/voyages' },
   { icon: Plus, label: 'Ajouter', path: '/add', isMain: true },
   { icon: Calendar, label: 'Calendrier', path: '/calendar' },
   { icon: Map, label: 'Carte', path: '/map' },
