@@ -134,6 +134,7 @@ export type Database = {
           distance_km: number
           id: string
           notes: string | null
+          price: number | null
           return_date: string | null
           seat_number: string | null
           status: string
@@ -161,6 +162,7 @@ export type Database = {
           distance_km?: number
           id?: string
           notes?: string | null
+          price?: number | null
           return_date?: string | null
           seat_number?: string | null
           status?: string
@@ -188,6 +190,7 @@ export type Database = {
           distance_km?: number
           id?: string
           notes?: string | null
+          price?: number | null
           return_date?: string | null
           seat_number?: string | null
           status?: string
