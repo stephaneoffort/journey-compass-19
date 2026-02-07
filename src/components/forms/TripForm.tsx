@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { CityAutocomplete } from './CityAutocomplete';
+import { StationAutocomplete } from './StationAutocomplete';
 import { StopoverInput } from './StopoverInput';
 import { TransportOptions } from './TransportOptions';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
+import { Station } from '@/data/parisStations';
 import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +64,10 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
   const [departure, setDeparture] = useState<CityData | null>(null);
   const [arrival, setArrival] = useState<CityData | null>(null);
   const [stopovers, setStopovers] = useState<Location[]>([]);
+  
+  // Metro stations (for Paris metro trips)
+  const [departureStation, setDepartureStation] = useState<Station | null>(null);
+  const [arrivalStation, setArrivalStation] = useState<Station | null>(null);
   
   // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
@@ -138,7 +144,19 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
     setCarType('');
     setTicketNumber('');
     setSeatNumber('');
+    // Reset cities/stations when switching between metro and other types
+    if (type === 'metro') {
+      setDeparture(null);
+      setArrival(null);
+      setStopovers([]);
+    } else {
+      setDepartureStation(null);
+      setArrivalStation(null);
+    }
   };
+
+  // For metro, use station names as city names
+  const isMetroInParis = transportType === 'metro';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,8 +164,14 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
     
     const newErrors: typeof errors = {};
     
-    if (!departure) newErrors.departure = 'Ville de départ requise';
-    if (!arrival) newErrors.arrival = 'Ville d\'arrivée requise';
+    if (isMetroInParis) {
+      if (!departureStation) newErrors.departure = 'Station de départ requise';
+      if (!arrivalStation) newErrors.arrival = 'Station d\'arrivée requise';
+    } else {
+      if (!departure) newErrors.departure = 'Ville de départ requise';
+      if (!arrival) newErrors.arrival = 'Ville d\'arrivée requise';
+    }
+    
     if (!departureDate) newErrors.date = 'Date de départ requise';
     if ((bookingStatus === 'trouve' || bookingStatus === 'achete') && !price) {
       newErrors.price = 'Prix requis pour ce statut';
@@ -158,21 +182,31 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       return;
     }
 
-    if (!distanceKm && !allCitiesKnown) {
+    // For metro, set a default distance based on Paris metro (average ~5km per trip)
+    let finalDistance = distanceKm ? parseInt(distanceKm) : 0;
+    if (isMetroInParis && !distanceKm) {
+      finalDistance = 5; // Default metro distance
+    } else if (!distanceKm && !allCitiesKnown) {
       setErrors({ departure: 'Distance requise pour les villes non reconnues' });
       return;
     }
 
-    const finalDistance = distanceKm ? parseInt(distanceKm) : 0;
+    // Prepare city data from stations for metro
+    const depCity = isMetroInParis ? departureStation!.name : departure!.city;
+    const depCountry = isMetroInParis ? 'FR' : (departure!.country || 'XX');
+    const depCountryName = isMetroInParis ? 'France' : (departure!.countryName || departure!.city);
+    const arrCity = isMetroInParis ? arrivalStation!.name : arrival!.city;
+    const arrCountry = isMetroInParis ? 'FR' : (arrival!.country || 'XX');
+    const arrCountryName = isMetroInParis ? 'France' : (arrival!.countryName || arrival!.city);
 
     await onSubmit({
-      departureCity: departure!.city,
-      departureCountry: departure!.country || 'XX',
-      departureCountryName: departure!.countryName || departure!.city,
-      arrivalCity: arrival!.city,
-      arrivalCountry: arrival!.country || 'XX',
-      arrivalCountryName: arrival!.countryName || arrival!.city,
-      via: stopovers.filter(s => s.city),
+      departureCity: depCity,
+      departureCountry: depCountry,
+      departureCountryName: depCountryName,
+      arrivalCity: arrCity,
+      arrivalCountry: arrCountry,
+      arrivalCountryName: arrCountryName,
+      via: isMetroInParis ? [] : stopovers.filter(s => s.city),
       departureDate,
       departureTime: departureTime || undefined,
       returnDate: returnDate || undefined,
@@ -363,46 +397,89 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
 
       {/* Departure & Arrival */}
       <div className="glass-card p-4 space-y-4">
-        <div className="space-y-2">
-          <Label className="text-muted-foreground">Départ</Label>
-          <CityAutocomplete
-            value={departure}
-            onChange={setDeparture}
-            placeholder="Ville de départ"
-          />
-          {errors.departure && <p className="text-xs text-destructive">{errors.departure}</p>}
-        </div>
-
-        {departure && arrival && (
-          <div className="flex justify-center py-2">
-            <div className="flex items-center gap-2 text-sm flex-wrap">
-              <span className="flag-emoji">{getFlag(departure.country)}</span>
-              <span>{departure.city}</span>
-              <ArrowRight className="w-4 h-4 text-primary" />
-              {stopovers.filter(s => s.city).map((stop, i) => (
-                <span key={i} className="flex items-center gap-2">
-                  <span className="flag-emoji">{getFlag(stop.country)}</span>
-                  <span>{stop.city}</span>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                </span>
-              ))}
-              <span className="flag-emoji">{getFlag(arrival.country)}</span>
-              <span>{arrival.city}</span>
+        {isMetroInParis ? (
+          <>
+            {/* Metro stations for Paris */}
+            <div className="text-xs text-primary bg-primary/10 px-3 py-2 rounded-lg mb-2">
+              🚇 Sélectionnez les stations de métro/RER Paris & Île-de-France
             </div>
-          </div>
+            
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Station de départ</Label>
+              <StationAutocomplete
+                value={departureStation}
+                onChange={setDepartureStation}
+                placeholder="Rechercher une station..."
+              />
+              {errors.departure && <p className="text-xs text-destructive">{errors.departure}</p>}
+            </div>
+
+            {departureStation && arrivalStation && (
+              <div className="flex justify-center py-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span>🚇</span>
+                  <span>{departureStation.name}</span>
+                  <ArrowRight className="w-4 h-4 text-primary" />
+                  <span>{arrivalStation.name}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Station d'arrivée</Label>
+              <StationAutocomplete
+                value={arrivalStation}
+                onChange={setArrivalStation}
+                placeholder="Rechercher une station..."
+              />
+              {errors.arrival && <p className="text-xs text-destructive">{errors.arrival}</p>}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Regular cities for other transport types */}
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Départ</Label>
+              <CityAutocomplete
+                value={departure}
+                onChange={setDeparture}
+                placeholder="Ville de départ"
+              />
+              {errors.departure && <p className="text-xs text-destructive">{errors.departure}</p>}
+            </div>
+
+            {departure && arrival && (
+              <div className="flex justify-center py-2">
+                <div className="flex items-center gap-2 text-sm flex-wrap">
+                  <span className="flag-emoji">{getFlag(departure.country)}</span>
+                  <span>{departure.city}</span>
+                  <ArrowRight className="w-4 h-4 text-primary" />
+                  {stopovers.filter(s => s.city).map((stop, i) => (
+                    <span key={i} className="flex items-center gap-2">
+                      <span className="flag-emoji">{getFlag(stop.country)}</span>
+                      <span>{stop.city}</span>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                    </span>
+                  ))}
+                  <span className="flag-emoji">{getFlag(arrival.country)}</span>
+                  <span>{arrival.city}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Arrivée</Label>
+              <CityAutocomplete
+                value={arrival}
+                onChange={setArrival}
+                placeholder="Ville d'arrivée"
+              />
+              {errors.arrival && <p className="text-xs text-destructive">{errors.arrival}</p>}
+            </div>
+
+            <StopoverInput stopovers={stopovers} onChange={setStopovers} />
+          </>
         )}
-
-        <div className="space-y-2">
-          <Label className="text-muted-foreground">Arrivée</Label>
-          <CityAutocomplete
-            value={arrival}
-            onChange={setArrival}
-            placeholder="Ville d'arrivée"
-          />
-          {errors.arrival && <p className="text-xs text-destructive">{errors.arrival}</p>}
-        </div>
-
-        <StopoverInput stopovers={stopovers} onChange={setStopovers} />
       </div>
 
       {/* Dates & Times */}
@@ -464,7 +541,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       </div>
 
       {/* Distance & CO2 */}
-      {(departure && arrival) && (
+      {((departure && arrival) || (departureStation && arrivalStation)) && (
         <div className="glass-card p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -472,18 +549,18 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               <span className="text-sm text-muted-foreground">Distance estimée</span>
             </div>
             <span className="font-semibold">
-              {calculatedDistance ? `${calculatedDistance.toLocaleString()} km` : 'Calcul...'}
+              {isMetroInParis 
+                ? '~5 km' 
+                : calculatedDistance 
+                  ? `${calculatedDistance.toLocaleString()} km` 
+                  : 'Calcul...'}
             </span>
           </div>
-          {estimatedCo2 > 0 && (
+          {(isMetroInParis || estimatedCo2 > 0) && (
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
               <span className="text-sm text-muted-foreground">Empreinte CO₂</span>
-              <span className={cn(
-                'font-semibold',
-                estimatedCo2 < 50 ? 'text-transport-train' : 
-                estimatedCo2 < 200 ? 'text-transport-car' : 'text-destructive'
-              )}>
-                {estimatedCo2 < 50 ? '🌱' : estimatedCo2 < 200 ? '🌿' : '🍂'} {estimatedCo2.toFixed(1)} kg
+              <span className="font-semibold text-transport-train">
+                🌱 {isMetroInParis ? '0.04' : estimatedCo2.toFixed(1)} kg
               </span>
             </div>
           )}
