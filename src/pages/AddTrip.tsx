@@ -339,47 +339,6 @@ export default function AddTrip() {
           </div>
         </div>
 
-        {/* Distance & CO2 */}
-        <div className="glass-card p-4 space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-muted-foreground">Distance (km)</Label>
-              {calculatedDistance !== null && (
-                <span className="text-xs text-primary flex items-center gap-1">
-                  <Route className="w-3 h-3" />
-                  Calculée automatiquement
-                </span>
-              )}
-            </div>
-            <Input
-              type="number"
-              value={distanceKm}
-              onChange={handleManualDistanceChange}
-              placeholder={allCitiesKnown ? "Calculée automatiquement" : "Saisir la distance"}
-              className="input-glass"
-              required={!allCitiesKnown}
-            />
-            {!allCitiesKnown && departure && arrival && (
-              <p className="text-xs text-destructive">
-                ⚠️ Une ou plusieurs villes ne sont pas reconnues. Veuillez saisir la distance manuellement.
-              </p>
-            )}
-          </div>
-          
-          {estimatedCo2 > 0 && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
-              <span className="text-sm text-muted-foreground">Empreinte CO₂ estimée</span>
-              <span className={cn(
-                'font-semibold',
-                estimatedCo2 < 50 ? 'text-transport-train' : 
-                estimatedCo2 < 200 ? 'text-transport-car' : 'text-destructive'
-              )}>
-                {estimatedCo2 < 50 ? '🌱' : estimatedCo2 < 200 ? '🌿' : '🍂'} {estimatedCo2.toFixed(1)} kg CO₂
-              </span>
-            </div>
-          )}
-        </div>
-
         {/* Notes */}
         <div className="space-y-2">
           <Label className="text-muted-foreground">Notes (optionnel)</Label>
