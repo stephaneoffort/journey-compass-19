@@ -14,6 +14,7 @@ import AddVoyage from "./pages/AddVoyage";
 import CalendarView from "./pages/CalendarView";
 import MapView from "./pages/MapView";
 import TripDetail from "./pages/TripDetail";
+import EditTrip from "./pages/EditTrip";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/trips" element={<ProtectedRoute><TripsList /></ProtectedRoute>} />
               <Route path="/trips/:id" element={<ProtectedRoute><TripDetail /></ProtectedRoute>} />
+              <Route path="/trips/:id/edit" element={<ProtectedRoute><EditTrip /></ProtectedRoute>} />
               <Route path="/voyages" element={<ProtectedRoute><VoyagesList /></ProtectedRoute>} />
               <Route path="/voyages/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
               <Route path="/add" element={<ProtectedRoute><AddVoyage /></ProtectedRoute>} />

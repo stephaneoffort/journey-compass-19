@@ -1,6 +1,6 @@
 import { Trip, transportEmoji, getFlag } from '@/types/trip';
-import { ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ChevronRight, Pencil } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface TripCardProps {
@@ -8,10 +8,18 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip }: TripCardProps) {
+  const navigate = useNavigate();
+  
   const statusColors = {
     completed: 'border-l-transport-train',
     planned: 'border-l-transport-plane',
     cancelled: 'border-l-destructive',
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/trips/${trip.id}/edit`);
   };
 
   return (
@@ -63,6 +71,15 @@ export function TripCard({ trip }: TripCardProps) {
             {trip.co2Kg < 50 ? '🌱' : trip.co2Kg < 200 ? '🌿' : '🍂'}
             <span>{trip.co2Kg.toFixed(0)} kg</span>
           </div>
+          {trip.status !== 'completed' && (
+            <button
+              onClick={handleEditClick}
+              className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Modifier le trajet"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
           <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </div>
       </div>

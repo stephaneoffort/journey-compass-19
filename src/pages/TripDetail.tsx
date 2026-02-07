@@ -246,6 +246,16 @@ export default function TripDetail() {
 
         {/* Actions */}
         <div className="flex gap-3 animate-slide-up" style={{ animationDelay: '350ms' }}>
+          {trip.status !== 'completed' && (
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => navigate(`/trips/${trip.id}/edit`)}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Modifier
+            </Button>
+          )}
           <Button 
             variant="outline" 
             className="flex-1"
