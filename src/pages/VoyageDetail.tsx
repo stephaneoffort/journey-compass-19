@@ -5,11 +5,12 @@ import { TripCard } from '@/components/trips/TripCard';
 import { transportEmoji, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Calendar, Route, Leaf, Trash2, Loader2, Pencil, Check, X, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, Route, Leaf, Trash2, Loader2, Pencil, Check, X, Plus, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { generateVoyagePDF } from '@/utils/voyagePDF';
 
 export default function VoyageDetail() {
   const { id } = useParams();
@@ -212,7 +213,16 @@ export default function VoyageDetail() {
         </div>
 
         {/* Actions */}
-        <div className="pt-4 animate-slide-up" style={{ animationDelay: '400ms' }}>
+        <div className="space-y-3 pt-4 animate-slide-up" style={{ animationDelay: '400ms' }}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => generateVoyagePDF(voyage)}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Télécharger la feuille de calculs
+          </Button>
+          
           <Button
             variant="outline"
             className="w-full text-destructive hover:bg-destructive/10"
