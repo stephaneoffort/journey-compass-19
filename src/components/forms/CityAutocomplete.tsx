@@ -253,8 +253,84 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
 
             {shouldRenderNoResults && (
               <div className="p-3">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mb-2">
                   Aucune ville trouvée pour "{query}"
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowAddCity(true);
+                    setNewCityName(query);
+                  }}
+                  className="w-full"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Rechercher en ligne
+                </Button>
+              </div>
+            )}
+
+            {shouldRenderAddCity && (
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Rechercher une ville</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowAddCity(false)}
+                    className="h-6 w-6"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <Input
+                  value={newCityName}
+                  onChange={(e) => setNewCityName(e.target.value)}
+                  placeholder="Nom de la ville"
+                  className="input-glass"
+                />
+
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger className="input-glass">
+                    <SelectValue placeholder="Choisir un pays" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border max-h-60">
+                    {europeanCountries.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        <span className="flex items-center gap-2">
+                          <span className="flag-emoji">{getFlag(country.code)}</span>
+                          {country.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  type="button"
+                  onClick={handleAddCustomCity}
+                  disabled={!newCityName || !selectedCountry || geocodeCity.isPending}
+                  className="w-full btn-primary"
+                >
+                  {geocodeCity.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Recherche...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Rechercher et ajouter
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-muted-foreground">
+                  🌍 La ville sera recherchée via OpenStreetMap et sauvegardée pour un usage futur.
                 </p>
               </div>
             )}
