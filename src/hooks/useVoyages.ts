@@ -216,7 +216,7 @@ export function useAddTripToVoyage() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (trip: TripInsertForVoyage) => {
+    mutationFn: async ({ invoiceFiles, ...trip }: TripInsertForVoyage & { invoiceFiles?: File[] }) => {
       if (!user) throw new Error('User not authenticated');
 
       const co2Kg = trip.distanceKm * co2PerKm[trip.transportType];
@@ -253,12 +253,47 @@ export function useAddTripToVoyage() {
         .single();
 
       if (error) throw error;
-      return mapDbToTrip(data);
+
+      const createdTrip = mapDbToTrip(data);
+
+      // Upload invoice files if any
+      if (invoiceFiles && invoiceFiles.length > 0) {
+        for (const file of invoiceFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}.${fileExt}`;
+          const filePath = `${user.id}/${createdTrip.id}/${fileName}`;
+
+          // Upload file to storage
+          const { error: uploadError } = await supabase.storage
+            .from('invoices')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('Error uploading invoice:', uploadError);
+            continue;
+          }
+
+          // Create invoice record
+          await supabase
+            .from('invoices')
+            .insert({
+              trip_id: createdTrip.id,
+              user_id: user.id,
+              file_name: file.name,
+              file_path: filePath,
+              file_size: file.size,
+              mime_type: file.type,
+            });
+        }
+      }
+
+      return createdTrip;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['voyages'] });
       queryClient.invalidateQueries({ queryKey: ['voyage', variables.voyageId] });
       queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
     },
   });
 }

@@ -40,7 +40,7 @@ export default function AddVoyage() {
     }
   };
 
-  const handleAddTrip = async (data: TripFormData) => {
+  const handleAddTrip = async (data: TripFormData, invoiceFiles?: File[]) => {
     if (!voyageId) return;
     
     setIsAddingTrip(true);
@@ -48,6 +48,7 @@ export default function AddVoyage() {
       const trip = await addTrip.mutateAsync({
         voyageId,
         ...data,
+        invoiceFiles,
       });
       
       setAddedTrips(prev => [...prev, trip]);
@@ -63,7 +64,7 @@ export default function AddVoyage() {
       
       toast({
         title: 'Déplacement ajouté ! 🎉',
-        description: `${data.departureCity} → ${data.arrivalCity}`,
+        description: `${data.departureCity} → ${data.arrivalCity}${invoiceFiles && invoiceFiles.length > 0 ? ` (${invoiceFiles.length} facture${invoiceFiles.length > 1 ? 's' : ''})` : ''}`,
       });
     } catch (error) {
       toast({

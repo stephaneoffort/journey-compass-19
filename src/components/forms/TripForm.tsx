@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { CityAutocomplete } from './CityAutocomplete';
 import { StopoverInput } from './StopoverInput';
 import { TransportOptions } from './TransportOptions';
@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Calendar, Clock, Save, Loader2, Route } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Save, Loader2, Route, Upload, Camera, FileText } from 'lucide-react';
 import { calculateRouteDistance } from '@/utils/distance';
+import { toast } from 'sonner';
 
 const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro'];
 
@@ -38,13 +39,17 @@ export interface TripFormData {
 }
 
 interface TripFormProps {
-  onSubmit: (data: TripFormData) => Promise<void>;
+  onSubmit: (data: TripFormData, invoiceFiles?: File[]) => Promise<void>;
   isLoading?: boolean;
   submitLabel?: string;
   tripNumber?: number;
 }
 
 export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tripNumber }: TripFormProps) {
+  // Invoice upload refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [pendingInvoices, setPendingInvoices] = useState<File[]>([]);
   // Transport (first)
   const [transportType, setTransportType] = useState<TransportType>('train');
   const [company, setCompany] = useState('');
@@ -181,7 +186,36 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       price: price ? parseFloat(price) : undefined,
       distanceKm: finalDistance,
       notes: notes || undefined,
-    });
+    }, pendingInvoices.length > 0 ? pendingInvoices : undefined);
+  };
+
+  const handleInvoiceSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const validFiles: File[] = [];
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    
+    for (const file of Array.from(files)) {
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`Type de fichier non supporté: ${file.name}`);
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`Fichier trop volumineux: ${file.name} (max 10MB)`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    setPendingInvoices(prev => [...prev, ...validFiles]);
+    
+    // Reset inputs
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+  };
+
+  const removePendingInvoice = (index: number) => {
+    setPendingInvoices(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -249,6 +283,80 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               className={cn('input-glass', errors.price && 'border-destructive')}
             />
             {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
+          </div>
+        )}
+
+        {/* Invoice Upload (for purchased trips) */}
+        {bookingStatus === 'achete' && (
+          <div className="space-y-3 pt-2 border-t border-border">
+            <Label className="text-muted-foreground flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Factures / Justificatifs
+            </Label>
+            
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Charger
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex-1 gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                Scanner
+              </Button>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              multiple
+              onChange={(e) => handleInvoiceSelect(e.target.files)}
+              className="hidden"
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => handleInvoiceSelect(e.target.files)}
+              className="hidden"
+            />
+
+            {pendingInvoices.length > 0 && (
+              <div className="space-y-2">
+                {pendingInvoices.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg text-sm">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span className="flex-1 truncate">{file.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removePendingInvoice(index)}
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              PDF, JPG, PNG • Max 10MB par fichier
+            </p>
           </div>
         )}
       </div>
