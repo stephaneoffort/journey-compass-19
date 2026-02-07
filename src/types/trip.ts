@@ -61,6 +61,7 @@ export interface Location {
 
 export interface Trip {
   id: string;
+  voyageId?: string;
   departureCity: string;
   departureCountry: string;
   departureCountryName: string;
