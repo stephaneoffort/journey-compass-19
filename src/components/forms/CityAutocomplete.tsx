@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect, useLayoutEffect, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { searchCities, CityData, europeanCountries } from '@/data/cityCoordinates';
+import { searchCities, CityData } from '@/data/cityCoordinates';
 import { getFlag } from '@/types/trip';
-import { MapPin, Plus, X, Loader2, Search } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGeocodeCity, useCustomCities } from '@/hooks/useGeocodeCity';
-import { useToast } from '@/hooks/use-toast';
+import { MapPin, Loader2 } from 'lucide-react';
+import { useCustomCities } from '@/hooks/useGeocodeCity';
+import { useSearchCity } from '@/hooks/useSearchCity';
 
 interface CityAutocompleteProps {
   value: CityData | null;
@@ -17,28 +15,32 @@ interface CityAutocompleteProps {
 
 export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher une ville...' }: CityAutocompleteProps) {
   const [query, setQuery] = useState(value?.city || '');
-  const [suggestions, setSuggestions] = useState<CityData[]>([]);
+  const [localSuggestions, setLocalSuggestions] = useState<CityData[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const [showAddCity, setShowAddCity] = useState(false);
-  const [newCityName, setNewCityName] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('');
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [shouldSearchOnline, setShouldSearchOnline] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const geocodeCity = useGeocodeCity();
   const { data: customCities = [] } = useCustomCities();
+  
+  // Online search - triggered when no local results found
+  const { data: onlineResults = [], isLoading: isSearchingOnline } = useSearchCity(
+    query,
+    shouldSearchOnline && localSuggestions.length === 0
+  );
+
+  // Combine local and online results
+  const suggestions = localSuggestions.length > 0 ? localSuggestions : onlineResults;
 
   useEffect(() => {
     if (value) {
       setQuery(value.city);
     }
   }, [value]);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -48,15 +50,11 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
       
       if (!isInsideContainer && !isInsideDropdown) {
         setIsOpen(false);
-        setShowAddCity(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Check if we need to show no results
-  const noResultsFound = isOpen && suggestions.length === 0 && query.length >= 3;
 
   useLayoutEffect(() => {
     const updateRect = () => {
@@ -70,7 +68,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
       });
     };
 
-    if (isOpen || showAddCity || noResultsFound) {
+    if (isOpen) {
       updateRect();
       window.addEventListener('scroll', updateRect, true);
       window.addEventListener('resize', updateRect);
@@ -81,15 +79,16 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     }
 
     return;
-  }, [isOpen, showAddCity, noResultsFound]);
+  }, [isOpen]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
     setFocusedIndex(-1);
+    setShouldSearchOnline(false);
     
     if (newQuery.length >= 2) {
-      // Search in both static cities and custom cities
+      // Search in static cities
       const staticResults = searchCities(newQuery);
       
       // Search in custom cities
@@ -108,15 +107,15 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
         }
       }
 
-      setSuggestions(allResults.slice(0, 10));
+      setLocalSuggestions(allResults.slice(0, 10));
       setIsOpen(true);
       
-      // If no results found and query is long enough, show add city option
+      // If no local results and query is long enough, trigger online search
       if (allResults.length === 0 && newQuery.length >= 3) {
-        setNewCityName(newQuery);
+        setShouldSearchOnline(true);
       }
     } else {
-      setSuggestions([]);
+      setLocalSuggestions([]);
       setIsOpen(false);
     }
   };
@@ -125,48 +124,8 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
     setQuery(city.city);
     onChange(city);
     setIsOpen(false);
-    setSuggestions([]);
-    setShowAddCity(false);
-  };
-
-  const handleAddCustomCity = async () => {
-    if (!newCityName || !selectedCountry) return;
-
-    const country = europeanCountries.find(c => c.code === selectedCountry);
-    if (!country) return;
-
-    console.log('[CityAutocomplete] geocode start', {
-      city: newCityName,
-      country: country.code,
-      countryName: country.name,
-    });
-
-    try {
-      const geocodedCity = await geocodeCity.mutateAsync({
-        city: newCityName,
-        country: country.code,
-        countryName: country.name,
-      });
-
-      console.log('[CityAutocomplete] geocode success', geocodedCity);
-
-      toast({
-        title: 'Ville trouvée ! 🎉',
-        description: `${geocodedCity.city}, ${geocodedCity.countryName} a été ajoutée.`,
-      });
-
-      handleSelect(geocodedCity);
-      setShowAddCity(false);
-      setNewCityName('');
-      setSelectedCountry('');
-    } catch (error) {
-      console.error('[CityAutocomplete] geocode error', error);
-      toast({
-        title: 'Ville non trouvée',
-        description: 'Impossible de trouver les coordonnées de cette ville. Vérifiez l\'orthographe.',
-        variant: 'destructive',
-      });
-    }
+    setLocalSuggestions([]);
+    setShouldSearchOnline(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -189,10 +148,12 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
         break;
       case 'Escape':
         setIsOpen(false);
-        setShowAddCity(false);
         break;
     }
   };
+
+  const showLoading = isSearchingOnline && localSuggestions.length === 0;
+  const showNoResults = !showLoading && suggestions.length === 0 && query.length >= 3 && isOpen;
 
   return (
     <div ref={containerRef} className={`relative ${isOpen ? 'z-[250]' : ''}`}> 
@@ -205,9 +166,12 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="input-glass pl-10"
+          className="input-glass pl-10 pr-10"
         />
-        {value?.country && (
+        {showLoading && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+        )}
+        {!showLoading && value?.country && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 flag-emoji">
             {getFlag(value.country)}
           </span>
@@ -215,12 +179,8 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
       </div>
 
       {(() => {
-        const shouldRenderSuggestions = isOpen && suggestions.length > 0;
-        const shouldRenderNoResults = noResultsFound && !showAddCity;
-        const shouldRenderAddCity = showAddCity;
-
-        if (!dropdownRect) return null;
-        if (!shouldRenderSuggestions && !shouldRenderNoResults && !shouldRenderAddCity) return null;
+        if (!dropdownRect || !isOpen) return null;
+        if (!showLoading && suggestions.length === 0 && !showNoResults) return null;
 
         const baseClass = "bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto";
         const style: CSSProperties = {
@@ -233,8 +193,20 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
 
         const content = (
           <div ref={dropdownRef} style={style} className={`${baseClass} animate-fade-in`}>
-            {shouldRenderSuggestions && (
+            {showLoading && (
+              <div className="p-4 flex items-center gap-3 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Recherche en ligne...</span>
+              </div>
+            )}
+
+            {!showLoading && suggestions.length > 0 && (
               <>
+                {localSuggestions.length === 0 && onlineResults.length > 0 && (
+                  <div className="px-4 py-2 text-xs text-primary border-b border-border bg-primary/5">
+                    🌍 Résultats trouvés en ligne (enregistrés automatiquement)
+                  </div>
+                )}
                 {suggestions.map((city, index) => (
                   <div
                     key={`${city.city}-${city.country}`}
@@ -251,87 +223,9 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
               </>
             )}
 
-            {shouldRenderNoResults && (
-              <div className="p-3">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Aucune ville trouvée pour "{query}"
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowAddCity(true);
-                    setNewCityName(query);
-                  }}
-                  className="w-full"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Rechercher en ligne
-                </Button>
-              </div>
-            )}
-
-            {shouldRenderAddCity && (
-              <div className="p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Rechercher une ville</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowAddCity(false)}
-                    className="h-6 w-6"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <Input
-                  value={newCityName}
-                  onChange={(e) => setNewCityName(e.target.value)}
-                  placeholder="Nom de la ville"
-                  className="input-glass"
-                />
-
-                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                  <SelectTrigger className="input-glass">
-                    <SelectValue placeholder="Choisir un pays" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border max-h-60">
-                    {europeanCountries.map((country) => (
-                      <SelectItem key={country.code} value={country.code}>
-                        <span className="flex items-center gap-2">
-                          <span className="flag-emoji">{getFlag(country.code)}</span>
-                          {country.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  type="button"
-                  onClick={handleAddCustomCity}
-                  disabled={!newCityName || !selectedCountry || geocodeCity.isPending}
-                  className="w-full btn-primary"
-                >
-                  {geocodeCity.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Recherche...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Rechercher et ajouter
-                    </>
-                  )}
-                </Button>
-
-                <p className="text-xs text-muted-foreground">
-                  🌍 La ville sera recherchée via OpenStreetMap et sauvegardée pour un usage futur.
-                </p>
+            {showNoResults && (
+              <div className="p-4 text-sm text-muted-foreground">
+                Aucune ville trouvée pour "{query}"
               </div>
             )}
           </div>
