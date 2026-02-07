@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete';
 import { StopoverInput } from '@/components/forms/StopoverInput';
@@ -23,6 +24,8 @@ const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat',
 export default function AddTrip() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const voyageId = searchParams.get('voyageId');
   const createTrip = useCreateTrip();
   
   // Transport (first)
@@ -172,6 +175,7 @@ export default function AddTrip() {
 
     try {
       await createTrip.mutateAsync({
+        voyageId: voyageId || undefined,
         departureCity: departure.city,
         departureCountry: departure.country || 'XX',
         departureCountryName: departure.countryName || departure.city,
@@ -199,7 +203,12 @@ export default function AddTrip() {
         description: `${departure.city} → ${arrival.city}`,
       });
 
-      navigate('/trips');
+      // Redirect to the voyage if adding to an existing one, otherwise to trips list
+      if (voyageId) {
+        navigate(`/voyages/${voyageId}`);
+      } else {
+        navigate('/trips');
+      }
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -212,8 +221,20 @@ export default function AddTrip() {
   return (
     <PageLayout>
       <div className="page-header safe-top">
-        <h1 className="page-title">Nouveau trajet</h1>
-        <p className="page-subtitle">Enregistrez un déplacement professionnel</p>
+        <h1 className="page-title">
+          {voyageId ? 'Ajouter un trajet' : 'Nouveau trajet'}
+        </h1>
+        <p className="page-subtitle">
+          {voyageId 
+            ? 'Ajouter un déplacement à ce voyage' 
+            : 'Enregistrez un déplacement professionnel'}
+        </p>
+        {voyageId && (
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm">
+            <span>📦</span>
+            <span>Voyage existant</span>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 space-y-6">

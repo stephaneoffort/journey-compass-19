@@ -5,6 +5,7 @@ import { useAuth } from './useAuth';
 import type { Json } from '@/integrations/supabase/types';
 
 interface TripInsert {
+  voyageId?: string;
   departureCity: string;
   departureCountry: string;
   departureCountryName: string;
@@ -31,6 +32,7 @@ interface TripInsert {
 function mapDbToTrip(row: any): Trip {
   return {
     id: row.id,
+    voyageId: row.voyage_id || undefined,
     departureCity: row.departure_city,
     departureCountry: row.departure_country,
     departureCountryName: row.departure_country_name,
@@ -114,6 +116,7 @@ export function useCreateTrip() {
         .from('trips')
         .insert({
           user_id: user.id,
+          voyage_id: trip.voyageId || null,
           departure_city: trip.departureCity,
           departure_country: trip.departureCountry,
           departure_country_name: trip.departureCountryName,
@@ -143,8 +146,12 @@ export function useCreateTrip() {
       if (error) throw error;
       return mapDbToTrip(data);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ['voyages'] });
+      if (data.voyageId) {
+        queryClient.invalidateQueries({ queryKey: ['voyage', data.voyageId] });
+      }
     },
   });
 }
