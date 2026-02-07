@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useVoyages } from '@/hooks/useVoyages';
 import { transportEmoji, getFlag } from '@/types/trip';
-import { Loader2, Plane, ArrowRight, Calendar, Route, Leaf } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Loader2, Plane, ArrowRight, Calendar, Route, Leaf, Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function VoyagesList() {
+  const navigate = useNavigate();
   const { data: voyages = [], isLoading } = useVoyages();
 
   // Sort voyages by the departure date of their first trip (descending)
@@ -26,6 +27,12 @@ export default function VoyagesList() {
       month: 'short',
       year: 'numeric',
     });
+  };
+
+  const handleAddTrip = (e: React.MouseEvent, voyageId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/add?voyageId=${voyageId}`);
   };
 
   return (
@@ -66,9 +73,18 @@ export default function VoyagesList() {
                       )}
                     </div>
                   </div>
-                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-                    {voyage.trips.length} trajet{voyage.trips.length > 1 ? 's' : ''}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+                      {voyage.trips.length} trajet{voyage.trips.length > 1 ? 's' : ''}
+                    </span>
+                    <button
+                      onClick={(e) => handleAddTrip(e, voyage.id)}
+                      className="w-7 h-7 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center transition-colors"
+                      title="Ajouter un déplacement"
+                    >
+                      <Plus className="w-4 h-4 text-primary" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Trip route summary */}
