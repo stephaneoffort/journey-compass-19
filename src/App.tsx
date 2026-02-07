@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import TripsList from "./pages/TripsList";
 import AddTrip from "./pages/AddTrip";
+import AddVoyage from "./pages/AddVoyage";
 import CalendarView from "./pages/CalendarView";
 import MapView from "./pages/MapView";
 import TripDetail from "./pages/TripDetail";
@@ -29,7 +30,8 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/trips" element={<ProtectedRoute><TripsList /></ProtectedRoute>} />
               <Route path="/trips/:id" element={<ProtectedRoute><TripDetail /></ProtectedRoute>} />
-              <Route path="/add" element={<ProtectedRoute><AddTrip /></ProtectedRoute>} />
+              <Route path="/add" element={<ProtectedRoute><AddVoyage /></ProtectedRoute>} />
+              <Route path="/add-single" element={<ProtectedRoute><AddTrip /></ProtectedRoute>} />
               <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
               <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
