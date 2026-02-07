@@ -7,6 +7,8 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import TripsList from "./pages/TripsList";
+import VoyagesList from "./pages/VoyagesList";
+import VoyageDetail from "./pages/VoyageDetail";
 import AddTrip from "./pages/AddTrip";
 import AddVoyage from "./pages/AddVoyage";
 import CalendarView from "./pages/CalendarView";
@@ -30,6 +32,8 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/trips" element={<ProtectedRoute><TripsList /></ProtectedRoute>} />
               <Route path="/trips/:id" element={<ProtectedRoute><TripDetail /></ProtectedRoute>} />
+              <Route path="/voyages" element={<ProtectedRoute><VoyagesList /></ProtectedRoute>} />
+              <Route path="/voyages/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
               <Route path="/add" element={<ProtectedRoute><AddVoyage /></ProtectedRoute>} />
               <Route path="/add-single" element={<ProtectedRoute><AddTrip /></ProtectedRoute>} />
               <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
