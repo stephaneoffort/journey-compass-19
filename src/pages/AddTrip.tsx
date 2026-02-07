@@ -3,6 +3,8 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete';
 import { StopoverInput } from '@/components/forms/StopoverInput';
 import { TransportOptions } from '@/components/forms/TransportOptions';
+import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
+import { BusStationSelect } from '@/components/forms/BusStationSelect';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
@@ -34,6 +36,10 @@ export default function AddTrip() {
   // Cities
   const [departure, setDeparture] = useState<CityData | null>(null);
   const [arrival, setArrival] = useState<CityData | null>(null);
+  
+  // Stations (train & bus)
+  const [departureStation, setDepartureStation] = useState<string | null>(null);
+  const [arrivalStation, setArrivalStation] = useState<string | null>(null);
   const [stopovers, setStopovers] = useState<Location[]>([]);
   
   // Dates & Times
@@ -276,9 +282,32 @@ export default function AddTrip() {
             <Label className="text-muted-foreground">Départ</Label>
             <CityAutocomplete
               value={departure}
-              onChange={setDeparture}
+              onChange={(city) => {
+                setDeparture(city);
+                setDepartureStation(null);
+              }}
               placeholder="Ville de départ"
             />
+            {/* Train station select for departure */}
+            {transportType === 'train' && departure && (
+              <TrainStationSelect
+                cityName={departure.city}
+                countryCode={departure.country}
+                value={departureStation}
+                onChange={setDepartureStation}
+                label="Gare de départ"
+              />
+            )}
+            {/* Bus station select for departure */}
+            {transportType === 'bus' && departure && (
+              <BusStationSelect
+                cityName={departure.city}
+                countryCode={departure.country}
+                value={departureStation}
+                onChange={setDepartureStation}
+                label="Gare routière de départ"
+              />
+            )}
           </div>
 
           {departure && arrival && (
@@ -304,9 +333,32 @@ export default function AddTrip() {
             <Label className="text-muted-foreground">Arrivée</Label>
             <CityAutocomplete
               value={arrival}
-              onChange={setArrival}
+              onChange={(city) => {
+                setArrival(city);
+                setArrivalStation(null);
+              }}
               placeholder="Ville d'arrivée"
             />
+            {/* Train station select for arrival */}
+            {transportType === 'train' && arrival && (
+              <TrainStationSelect
+                cityName={arrival.city}
+                countryCode={arrival.country}
+                value={arrivalStation}
+                onChange={setArrivalStation}
+                label="Gare d'arrivée"
+              />
+            )}
+            {/* Bus station select for arrival */}
+            {transportType === 'bus' && arrival && (
+              <BusStationSelect
+                cityName={arrival.city}
+                countryCode={arrival.country}
+                value={arrivalStation}
+                onChange={setArrivalStation}
+                label="Gare routière d'arrivée"
+              />
+            )}
           </div>
 
           <StopoverInput stopovers={stopovers} onChange={setStopovers} />
