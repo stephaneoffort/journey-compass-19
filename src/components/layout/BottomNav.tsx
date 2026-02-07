@@ -72,16 +72,33 @@ export function BottomNav() {
                 </div>
               </button>
 
-              {/* Add trip to existing voyage */}
+              {/* Always available: add trip to an existing voyage */}
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  navigate('/voyages');
+                }}
+                className="w-full flex items-center gap-4 p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors text-left"
+              >
+                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
+                  <Route className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <div className="font-medium">Ajouter un déplacement</div>
+                  <div className="text-sm text-muted-foreground">Choisir un voyage existant</div>
+                </div>
+              </button>
+
+              {/* Quick picks when voyages are available */}
               {voyages.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground px-1">Ajouter un déplacement à :</div>
+                <div className="space-y-2 pt-1">
+                  <div className="text-sm text-muted-foreground px-1">Raccourcis :</div>
                   <div className="max-h-48 overflow-y-auto space-y-2">
                     {voyages.slice(0, 5).map((voyage) => (
                       <button
                         key={voyage.id}
                         onClick={() => handleAddTrip(voyage.id)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors text-left"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors text-left"
                       >
                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
                           <Route className="w-5 h-5 text-primary" />
