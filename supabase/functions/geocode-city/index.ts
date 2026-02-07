@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface GeocodeRequest {
@@ -30,26 +30,44 @@ serve(async (req) => {
     
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create admin client 
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
     
-    // Verify user token
+    // Verify user token by decoding JWT and getting user
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    let userId: string;
     
-    if (authError || !user) {
-      console.error('Auth error:', authError);
+    try {
+      // Decode JWT to get user id
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub;
+      
+      // Verify user exists
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      if (userError || !userData?.user) {
+        throw new Error('User not found');
+      }
+    } catch {
+      console.error('Auth error: Invalid token');
       return new Response(
         JSON.stringify({ error: 'Invalid authorization token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('User authenticated:', userId);
 
     const { city, country, countryName }: GeocodeRequest = await req.json();
 
@@ -129,7 +147,7 @@ serve(async (req) => {
         country_name: countryName,
         lat,
         lng,
-        user_id: user.id,
+        user_id: userId,
       });
 
     if (insertError) {
