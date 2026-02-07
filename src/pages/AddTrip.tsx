@@ -370,6 +370,33 @@ export default function AddTrip() {
           </div>
         </div>
 
+        {/* Distance & CO2 - Auto-calculated */}
+        {(departure && arrival) && (
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Route className="w-4 h-4 text-primary" />
+                <span className="text-sm text-muted-foreground">Distance estimée</span>
+              </div>
+              <span className="font-semibold">
+                {calculatedDistance ? `${calculatedDistance.toLocaleString()} km` : 'Calcul...'}
+              </span>
+            </div>
+            {estimatedCo2 > 0 && (
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                <span className="text-sm text-muted-foreground">Empreinte CO₂</span>
+                <span className={cn(
+                  'font-semibold',
+                  estimatedCo2 < 50 ? 'text-transport-train' : 
+                  estimatedCo2 < 200 ? 'text-transport-car' : 'text-destructive'
+                )}>
+                  {estimatedCo2 < 50 ? '🌱' : estimatedCo2 < 200 ? '🌿' : '🍂'} {estimatedCo2.toFixed(1)} kg
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Notes */}
         <div className="space-y-2">
           <Label className="text-muted-foreground">Notes (optionnel)</Label>
