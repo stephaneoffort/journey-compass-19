@@ -16,6 +16,7 @@ import MapView from "./pages/MapView";
 import TripDetail from "./pages/TripDetail";
 import EditTrip from "./pages/EditTrip";
 import Auth from "./pages/Auth";
+import OAuthCallback from "./pages/OAuthCallback";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<OAuthCallback />} />
               <Route path="/install" element={<Install />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/trips" element={<ProtectedRoute><TripsList /></ProtectedRoute>} />

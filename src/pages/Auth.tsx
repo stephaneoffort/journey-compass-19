@@ -30,9 +30,9 @@ export default function Auth() {
     setGoogleLoading(true);
 
     try {
-      // Use Lovable managed OAuth flow for all domains
+      // Use Lovable managed OAuth flow
       const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
       
       if (error) {
