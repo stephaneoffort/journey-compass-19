@@ -222,14 +222,14 @@ export default function CalendarView() {
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             <span className="text-muted-foreground">Départ:</span>
-                            <span>{trip.departureTime}</span>
+                            <span>{trip.departureTime.slice(0, 5)}</span>
                           </div>
                         )}
                         {trip.arrivalTime && (
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             <span className="text-muted-foreground">Arrivée:</span>
-                            <span>{trip.arrivalTime}</span>
+                            <span>{trip.arrivalTime.slice(0, 5)}</span>
                           </div>
                         )}
                       </>
