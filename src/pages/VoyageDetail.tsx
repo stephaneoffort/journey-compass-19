@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useVoyage, useDeleteVoyage, useUpdateVoyage } from '@/hooks/useVoyages';
 import { TripCard } from '@/components/trips/TripCard';
+import { VoyageSummary } from '@/components/voyages/VoyageSummary';
 import { transportEmoji, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -178,6 +179,9 @@ export default function VoyageDetail() {
             </div>
           )}
         </div>
+
+        {/* Summary */}
+        <VoyageSummary trips={voyage.trips} />
 
         {/* Trip list */}
         <div className="space-y-3">
