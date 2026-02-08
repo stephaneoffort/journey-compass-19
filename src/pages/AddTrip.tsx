@@ -6,6 +6,7 @@ import { StopoverInput } from '@/components/forms/StopoverInput';
 import { TransportOptions } from '@/components/forms/TransportOptions';
 import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
 import { BusStationSelect } from '@/components/forms/BusStationSelect';
+import { TripEstimateCard } from '@/components/trips/TripEstimateCard';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useCreateTrip } from '@/hooks/useTrips';
 import { calculateRouteDistance } from '@/utils/distance';
+import { useTripEstimate } from '@/hooks/useTripEstimate';
 
 const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro'];
 
@@ -56,6 +58,9 @@ export default function AddTrip() {
   const [manualDistance, setManualDistance] = useState(false);
   const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
+
+  // AI Estimate
+  const { estimate, isLoading: isEstimating, error: estimateError, fetchEstimate, clearEstimate } = useTripEstimate();
 
   // Calculate distance automatically when cities change
   const calculatedDistance = useMemo(() => {
@@ -133,7 +138,22 @@ export default function AddTrip() {
     setCarType('');
     setTicketNumber('');
     setSeatNumber('');
+    clearEstimate();
   };
+
+  const handleRequestEstimate = () => {
+    if (!departure || !arrival || !distanceKm) return;
+    
+    fetchEstimate({
+      departureCity: departure.city,
+      arrivalCity: arrival.city,
+      transportType,
+      distanceKm: parseInt(distanceKm),
+      stopovers: stopovers.filter(s => s.city).map(s => s.city),
+    });
+  };
+
+  const canEstimate = Boolean(departure && arrival && distanceKm);
 
   const handleManualDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setManualDistance(true);
@@ -457,7 +477,7 @@ export default function AddTrip() {
             </div>
             {estimatedCo2 > 0 && (
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                <span className="text-sm text-muted-foreground">Empreinte CO₂</span>
+                <span className="text-sm text-muted-foreground">Empreinte CO₂ (basique)</span>
                 <span className={cn(
                   'font-semibold',
                   estimatedCo2 < 50 ? 'text-transport-train' : 
@@ -468,6 +488,17 @@ export default function AddTrip() {
               </div>
             )}
           </div>
+        )}
+
+        {/* AI Estimation */}
+        {(departure && arrival) && (
+          <TripEstimateCard
+            estimate={estimate}
+            isLoading={isEstimating}
+            error={estimateError}
+            onRequestEstimate={handleRequestEstimate}
+            canEstimate={canEstimate}
+          />
         )}
 
         {/* Notes */}
