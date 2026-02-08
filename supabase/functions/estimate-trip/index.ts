@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface TripEstimateRequest {
@@ -13,21 +14,110 @@ interface TripEstimateRequest {
   stopovers?: string[];
 }
 
+// Validate transport type
+const validTransportTypes = ['plane', 'train', 'car', 'bus', 'boat', 'metro', 'logement', 'frais'];
+
+// Regex for city names - allows letters (including accented), spaces, hyphens, apostrophes, commas, periods
+const cityRegex = /^[a-zA-ZÀ-ÿ0-9\s\-',.]{1,100}$/;
+
+function validateInput(req: TripEstimateRequest): string | null {
+  // Validate transportType
+  if (!validTransportTypes.includes(req.transportType)) {
+    return 'Type de transport invalide';
+  }
+  
+  // Validate city names
+  if (!req.departureCity || !cityRegex.test(req.departureCity)) {
+    return 'Nom de ville de départ invalide';
+  }
+  if (!req.arrivalCity || !cityRegex.test(req.arrivalCity)) {
+    return 'Nom de ville d\'arrivée invalide';
+  }
+  
+  // Validate distance
+  if (typeof req.distanceKm !== 'number' || req.distanceKm < 0 || req.distanceKm > 50000) {
+    return 'Distance invalide';
+  }
+  
+  // Validate stopovers
+  if (req.stopovers) {
+    if (!Array.isArray(req.stopovers) || req.stopovers.length > 10) {
+      return 'Trop d\'escales (maximum 10)';
+    }
+    for (const stopover of req.stopovers) {
+      if (typeof stopover !== 'string' || !cityRegex.test(stopover)) {
+        return 'Format d\'escale invalide';
+      }
+    }
+  }
+  
+  return null;
+}
+
+// Sanitize string for use in prompts - remove newlines, tabs, limit length
+function sanitizeForPrompt(input: string): string {
+  return input
+    .replace(/[\n\r]/g, ' ')
+    .replace(/[\t]/g, ' ')
+    .slice(0, 100)
+    .trim();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { departureCity, arrivalCity, transportType, distanceKm, stopovers } = await req.json() as TripEstimateRequest;
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentification requise' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      console.error('Auth error:', claimsError);
+      return new Response(
+        JSON.stringify({ error: 'Token d\'authentification invalide' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Parse and validate request
+    const requestData = await req.json() as TripEstimateRequest;
+    const validationError = validateInput(requestData);
+    if (validationError) {
+      return new Response(
+        JSON.stringify({ error: validationError }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { departureCity, arrivalCity, transportType, distanceKm, stopovers } = requestData;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const stopoverText = stopovers && stopovers.length > 0 
-      ? `avec escales à ${stopovers.join(", ")}` 
+    // Sanitize inputs for prompt
+    const safeDepartureCity = sanitizeForPrompt(departureCity);
+    const safeArrivalCity = sanitizeForPrompt(arrivalCity);
+    const safeStopoverText = stopovers && stopovers.length > 0 
+      ? `avec escales à ${stopovers.map(s => sanitizeForPrompt(s)).join(", ")}` 
       : "";
 
     const systemPrompt = `Tu es un expert en transport et en environnement. Tu estimes le temps de trajet et l'empreinte carbone pour différents modes de transport.
@@ -55,11 +145,11 @@ Pour co2Comparison, compare avec un trajet équivalent en voiture.
 Pour tips, donne 2-3 conseils pertinents pour réduire l'empreinte ou optimiser le trajet.`;
 
     const userPrompt = `Estime le temps de trajet et les émissions CO2 pour:
-- Départ: ${departureCity}
-- Arrivée: ${arrivalCity}
+- Départ: ${safeDepartureCity}
+- Arrivée: ${safeArrivalCity}
 - Distance: ${distanceKm} km
 - Transport: ${transportType}
-${stopoverText}
+${safeStopoverText}
 
 Prends en compte les temps d'attente, correspondances et conditions réalistes.`;
 
@@ -110,6 +200,12 @@ Prends en compte les temps d'attente, correspondances et conditions réalistes.`
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         estimate = JSON.parse(jsonMatch[0]);
+        
+        // Validate AI output structure
+        if (typeof estimate.estimatedDurationMinutes !== 'number' ||
+            typeof estimate.estimatedCo2Kg !== 'number') {
+          throw new Error("Invalid AI response structure");
+        }
       } else {
         throw new Error("No JSON found in response");
       }
