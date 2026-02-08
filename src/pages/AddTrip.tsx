@@ -446,7 +446,21 @@ export default function AddTrip() {
 
         {/* Departure & Arrival */}
         <div className="glass-card p-4 space-y-4">
-          {transportType === 'metro' ? (
+          {transportType === 'logement' ? (
+            // Logement: only one city field
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Lieu d'hébergement</Label>
+              <CityAutocomplete
+                value={departure}
+                onChange={(city) => {
+                  setDeparture(city);
+                  // Also set arrival to same city for data consistency
+                  setArrival(city);
+                }}
+                placeholder="Ville de l'hébergement"
+              />
+            </div>
+          ) : transportType === 'metro' ? (
             <>
               <div className="text-xs text-primary bg-primary/10 px-3 py-2 rounded-lg">
                 🚇 Sélectionnez les villes puis les stations (Paris ou Londres)
