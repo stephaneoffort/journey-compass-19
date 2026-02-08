@@ -50,7 +50,7 @@ export default function Auth() {
 
       // Always use Lovable managed OAuth flow - it handles credentials automatically
       const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: `${window.location.origin}/#/auth/callback`,
+        redirect_uri: `${window.location.origin}/auth/callback`,
         extraParams: {
           prompt: 'select_account',
         },
@@ -80,7 +80,7 @@ export default function Auth() {
     try {
       // Always use Lovable managed OAuth flow
       const { error } = await lovable.auth.signInWithOAuth('apple', {
-        redirect_uri: `${window.location.origin}/#/auth/callback`,
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
 
       if (error) {
