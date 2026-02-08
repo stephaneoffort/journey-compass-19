@@ -249,17 +249,18 @@ export function MetroStationSelect({ city, value, onChange, label, placeholder }
 // Helper to check if a city supports metro stations
 export function isCityWithMetro(cityName: string, countryCode: string): MetroCity | null {
   const normalizedCity = cityName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const normalizedCountry = countryCode?.toUpperCase() || '';
   
   // Paris and Île-de-France
-  if (countryCode === 'FR') {
-    const parisAreas = ['paris', 'ile-de-france', 'ile de france'];
+  if (normalizedCountry === 'FR' || normalizedCountry === 'FRA') {
+    const parisAreas = ['paris', 'ile-de-france', 'ile de france', 'idf'];
     if (parisAreas.some(area => normalizedCity.includes(area)) || normalizedCity === 'paris') {
       return 'paris';
     }
   }
   
   // London
-  if (countryCode === 'GB' || countryCode === 'UK') {
+  if (normalizedCountry === 'GB' || normalizedCountry === 'UK' || normalizedCountry === 'GBR') {
     const londonAreas = ['london', 'londres'];
     if (londonAreas.some(area => normalizedCity.includes(area))) {
       return 'london';
