@@ -8,6 +8,7 @@ import { TransportOptions } from '@/components/forms/TransportOptions';
 import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
 import { BusStationSelect } from '@/components/forms/BusStationSelect';
 import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroStationSelect';
+import { CarExpenses, CarExpensesData } from '@/components/forms/CarExpenses';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,13 @@ export default function EditTrip() {
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<{ departure?: string; arrival?: string; date?: string; price?: string }>({});
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Car expenses (for personal vehicle)
+  const [carExpenses, setCarExpenses] = useState<CarExpensesData>({
+    tollExpense: '',
+    parkingExpense: '',
+    otherExpense: '',
+  });
 
   // Initialize form with trip data
   useEffect(() => {
@@ -112,6 +120,15 @@ export default function EditTrip() {
       } else if (trip.transportType === 'metro') {
         setDepartureMetroStation(trip.departureStation || null);
         setArrivalMetroStation(trip.arrivalStation || null);
+      }
+      
+      // Initialize car expenses
+      if (trip.transportType === 'car') {
+        setCarExpenses({
+          tollExpense: trip.tollExpense?.toString() || '',
+          parkingExpense: trip.parkingExpense?.toString() || '',
+          otherExpense: trip.otherExpense?.toString() || '',
+        });
       }
       
       setIsInitialized(true);
@@ -188,6 +205,11 @@ export default function EditTrip() {
     setArrivalBusStation(null);
     setDepartureMetroStation(null);
     setArrivalMetroStation(null);
+    
+    // Reset car expenses when switching away from car
+    if (type !== 'car') {
+      setCarExpenses({ tollExpense: '', parkingExpense: '', otherExpense: '' });
+    }
   };
   
   // Check if we're in metro mode for Paris/London
@@ -231,6 +253,9 @@ export default function EditTrip() {
                      : undefined;
 
     try {
+      // Car expenses (only for personal vehicle)
+      const showCarExpenses = transportType === 'car' && carType === 'personnel';
+      
       await updateTrip.mutateAsync({
         id: trip.id,
         departureCity: departure!.city,
@@ -256,6 +281,9 @@ export default function EditTrip() {
         notes: notes || undefined,
         departureStation: depStation || undefined,
         arrivalStation: arrStation || undefined,
+        tollExpense: showCarExpenses && carExpenses.tollExpense ? parseFloat(carExpenses.tollExpense) : undefined,
+        parkingExpense: showCarExpenses && carExpenses.parkingExpense ? parseFloat(carExpenses.parkingExpense) : undefined,
+        otherExpense: showCarExpenses && carExpenses.otherExpense ? parseFloat(carExpenses.otherExpense) : undefined,
       });
       
       toast({ title: 'Trajet modifié !' });
@@ -372,6 +400,11 @@ export default function EditTrip() {
               />
               {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
             </div>
+          )}
+          
+          {/* Car expenses for personal vehicle */}
+          {transportType === 'car' && carType === 'personnel' && (
+            <CarExpenses expenses={carExpenses} onChange={setCarExpenses} />
           )}
         </div>
 
