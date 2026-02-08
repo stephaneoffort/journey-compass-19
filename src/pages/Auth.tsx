@@ -67,11 +67,7 @@ export default function Auth() {
         if (error) throw error;
 
         if (oauthData?.url) {
-          const oauthUrl = new URL(oauthData.url);
-          const allowedHosts = ['accounts.google.com'];
-          if (!allowedHosts.some(host => oauthUrl.hostname === host)) {
-            throw new Error('URL de redirection OAuth invalide');
-          }
+          // Supabase returns its own auth URL which then redirects to Google
           window.location.href = oauthData.url;
           return;
         }
@@ -123,11 +119,7 @@ export default function Auth() {
         if (error) throw error;
 
         if (oauthData?.url) {
-          const oauthUrl = new URL(oauthData.url);
-          const allowedHosts = ['appleid.apple.com'];
-          if (!allowedHosts.some(host => oauthUrl.hostname === host)) {
-            throw new Error('URL de redirection OAuth invalide');
-          }
+          // Supabase returns its own auth URL which then redirects to Apple
           window.location.href = oauthData.url;
           return;
         }
