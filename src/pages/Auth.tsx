@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plane, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Plane, Mail, Lock, User, ArrowRight, Loader2, Apple } from 'lucide-react';
 import { z } from 'zod';
 import { lovable } from '@/integrations/lovable';
 const authSchema = z.object({
@@ -21,6 +21,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const { user, loading: authLoading, signIn, signUp } = useAuth();
@@ -63,6 +64,32 @@ export default function Auth() {
         variant: 'destructive',
       });
       setGoogleLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+
+    try {
+      const { error } = await lovable.auth.signInWithOAuth('apple', {
+        redirect_uri: `${window.location.origin}/auth/callback`,
+      });
+
+      if (error) {
+        toast({
+          title: 'Erreur',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setAppleLoading(false);
+      }
+    } catch (e) {
+      toast({
+        title: 'Erreur',
+        description: e instanceof Error ? e.message : 'Erreur inconnue',
+        variant: 'destructive',
+      });
+      setAppleLoading(false);
     }
   };
 
@@ -249,6 +276,23 @@ export default function Auth() {
                   />
                 </svg>
                 Continuer avec Google
+              </>
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleAppleSignIn}
+            disabled={appleLoading}
+          >
+            {appleLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Apple className="w-4 h-4 mr-2" />
+                Continuer avec Apple
               </>
             )}
           </Button>
