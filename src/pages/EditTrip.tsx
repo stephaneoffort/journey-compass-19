@@ -100,6 +100,18 @@ export default function EditTrip() {
       setPrice(trip.price?.toString() || '');
       setNotes(trip.notes || '');
       
+      // Initialize station fields based on transport type
+      if (trip.transportType === 'train') {
+        setDepartureTrainStation(trip.departureStation || null);
+        setArrivalTrainStation(trip.arrivalStation || null);
+      } else if (trip.transportType === 'bus') {
+        setDepartureBusStation(trip.departureStation || null);
+        setArrivalBusStation(trip.arrivalStation || null);
+      } else if (trip.transportType === 'metro') {
+        setDepartureMetroStation(trip.departureStation || null);
+        setArrivalMetroStation(trip.arrivalStation || null);
+      }
+      
       setIsInitialized(true);
     }
   }, [trip, isInitialized]);
@@ -205,6 +217,16 @@ export default function EditTrip() {
 
     const finalDistance = distanceKm ? parseInt(distanceKm) : 0;
 
+    // Determine station names based on transport type
+    const depStation = transportType === 'train' ? departureTrainStation 
+                     : transportType === 'bus' ? departureBusStation 
+                     : transportType === 'metro' ? departureMetroStation
+                     : undefined;
+    const arrStation = transportType === 'train' ? arrivalTrainStation 
+                     : transportType === 'bus' ? arrivalBusStation 
+                     : transportType === 'metro' ? arrivalMetroStation
+                     : undefined;
+
     try {
       await updateTrip.mutateAsync({
         id: trip.id,
@@ -228,6 +250,8 @@ export default function EditTrip() {
         price: price ? parseFloat(price) : undefined,
         distanceKm: finalDistance,
         notes: notes || undefined,
+        departureStation: depStation || undefined,
+        arrivalStation: arrStation || undefined,
       });
       
       toast({ title: 'Trajet modifié !' });

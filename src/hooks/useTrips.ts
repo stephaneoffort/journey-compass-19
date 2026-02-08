@@ -27,6 +27,8 @@ interface TripInsert {
   distanceKm: number;
   status?: TripStatus;
   notes?: string;
+  departureStation?: string;
+  arrivalStation?: string;
 }
 
 function mapDbToTrip(row: any): Trip {
@@ -55,6 +57,8 @@ function mapDbToTrip(row: any): Trip {
     co2Kg: parseFloat(row.co2_kg),
     status: row.status as TripStatus,
     notes: row.notes,
+    departureStation: row.departure_station || undefined,
+    arrivalStation: row.arrival_station || undefined,
     invoiceUrls: [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -139,6 +143,8 @@ export function useCreateTrip() {
           co2_kg: co2Kg,
           status: trip.status || 'planned',
           notes: trip.notes || null,
+          departure_station: trip.departureStation || null,
+          arrival_station: trip.arrivalStation || null,
         })
         .select()
         .single();
@@ -193,6 +199,8 @@ export function useUpdateTrip() {
       }
       if (updates.status) updateData.status = updates.status;
       if (updates.notes !== undefined) updateData.notes = updates.notes;
+      if (updates.departureStation !== undefined) updateData.departure_station = updates.departureStation;
+      if (updates.arrivalStation !== undefined) updateData.arrival_station = updates.arrivalStation;
 
       const { data, error } = await supabase
         .from('trips')
