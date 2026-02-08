@@ -1,4 +1,4 @@
-import { TransportType, CarType, BookingStatus, airlines, busCompanies, carTypeLabels, bookingStatusLabels, bookingStatusEmoji } from '@/types/trip';
+import { TransportType, CarType, BookingStatus, AccommodationType, airlines, busCompanies, carTypeLabels, bookingStatusLabels, bookingStatusEmoji, accommodationTypeLabels } from '@/types/trip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,8 @@ interface TransportOptionsProps {
   setCompany: (value: string) => void;
   carType: CarType | '';
   setCarType: (value: CarType | '') => void;
+  accommodationType?: AccommodationType | '';
+  setAccommodationType?: (value: AccommodationType | '') => void;
   ticketNumber: string;
   setTicketNumber: (value: string) => void;
   seatNumber: string;
@@ -24,6 +26,8 @@ export function TransportOptions({
   setCompany,
   carType,
   setCarType,
+  accommodationType,
+  setAccommodationType,
   ticketNumber,
   setTicketNumber,
   seatNumber,
@@ -33,6 +37,7 @@ export function TransportOptions({
 }: TransportOptionsProps) {
   const showCompanySelect = transportType === 'plane' || transportType === 'bus';
   const showCarType = transportType === 'car';
+  const showAccommodationType = transportType === 'logement';
   const showTicketInfo = transportType === 'plane' || transportType === 'train' || transportType === 'bus';
 
   const companyOptions = transportType === 'plane' ? airlines : busCompanies;
@@ -100,6 +105,31 @@ export function TransportOptions({
                 )}
               >
                 {carTypeLabels[type]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Accommodation Type */}
+      {showAccommodationType && setAccommodationType && (
+        <div className="space-y-2">
+          <Label className="text-muted-foreground">Type d'hébergement</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {(Object.keys(accommodationTypeLabels) as AccommodationType[]).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setAccommodationType(type)}
+                className={cn(
+                  'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium',
+                  accommodationType === type
+                    ? 'bg-amber-500/20 text-amber-600 ring-2 ring-amber-500'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span>{type === 'hotel' ? '🏨' : '🏠'}</span>
+                <span>{accommodationTypeLabels[type]}</span>
               </button>
             ))}
           </div>
