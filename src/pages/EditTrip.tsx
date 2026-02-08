@@ -681,8 +681,8 @@ export default function EditTrip() {
           )}
         </div>
 
-        {/* Distance & CO2 */}
-        {(departure && arrival) && (
+        {/* Distance & CO2 (hidden for logement) */}
+        {(departure && arrival) && transportType !== 'logement' && (
           <div className="glass-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

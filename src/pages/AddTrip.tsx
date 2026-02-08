@@ -791,8 +791,8 @@ export default function AddTrip() {
           )}
         </div>
 
-        {/* Distance & CO2 - Auto-calculated */}
-        {(departure && arrival) && (
+        {/* Distance & CO2 - Auto-calculated (hidden for logement) */}
+        {(departure && arrival) && transportType !== 'logement' && (
           <div className="glass-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -818,8 +818,8 @@ export default function AddTrip() {
           </div>
         )}
 
-        {/* AI Estimation */}
-        {(departure && arrival) && (
+        {/* AI Estimation (hidden for logement) */}
+        {(departure && arrival) && transportType !== 'logement' && (
           <TripEstimateCard
             estimate={estimate}
             isLoading={isEstimating}
