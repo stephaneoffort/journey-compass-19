@@ -6,6 +6,7 @@ import { StopoverInput } from '@/components/forms/StopoverInput';
 import { TransportOptions } from '@/components/forms/TransportOptions';
 import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
 import { BusStationSelect } from '@/components/forms/BusStationSelect';
+import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroStationSelect';
 import { TripEstimateCard } from '@/components/trips/TripEstimateCard';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
@@ -41,11 +42,15 @@ export default function AddTrip() {
   // Cities
   const [departure, setDeparture] = useState<CityData | null>(null);
   const [arrival, setArrival] = useState<CityData | null>(null);
-  
+
   // Stations (train & bus)
   const [departureStation, setDepartureStation] = useState<string | null>(null);
   const [arrivalStation, setArrivalStation] = useState<string | null>(null);
   const [stopovers, setStopovers] = useState<Location[]>([]);
+
+  // Metro stations (Paris/London)
+  const [departureMetroStation, setDepartureMetroStation] = useState<string | null>(null);
+  const [arrivalMetroStation, setArrivalMetroStation] = useState<string | null>(null);
   
   // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
@@ -139,6 +144,17 @@ export default function AddTrip() {
     setTicketNumber('');
     setSeatNumber('');
     clearEstimate();
+
+    // Reset station selections when switching modes
+    setDepartureStation(null);
+    setArrivalStation(null);
+    setDepartureMetroStation(null);
+    setArrivalMetroStation(null);
+
+    // Metro trips don't support stopovers
+    if (type === 'metro') {
+      setStopovers([]);
+    }
   };
 
   const handleRequestEstimate = () => {
@@ -162,7 +178,102 @@ export default function AddTrip() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Metro: require cities + stations (Paris/London)
+    if (transportType === 'metro') {
+      if (!departure || !arrival || !departureDate) {
+        toast({
+          title: 'Champs requis',
+          description: 'Veuillez remplir les villes et la date de départ.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const depNeedsStation = Boolean(departure && isCityWithMetro(departure.city, departure.country));
+      const arrNeedsStation = Boolean(arrival && isCityWithMetro(arrival.city, arrival.country));
+
+      if (depNeedsStation && !departureMetroStation) {
+        toast({
+          title: 'Station requise',
+          description: 'Veuillez sélectionner la station de départ (Paris/Londres).',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (arrNeedsStation && !arrivalMetroStation) {
+        toast({
+          title: 'Station requise',
+          description: 'Veuillez sélectionner la station d\'arrivée (Paris/Londres).',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Price is required when booking status is 'trouve' or 'achete'
+      if ((bookingStatus === 'trouve' || bookingStatus === 'achete') && !price) {
+        toast({
+          title: 'Prix requis',
+          description: 'Veuillez saisir le prix du trajet.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // For metro, apply a default distance (unless user manually typed one)
+      const finalDistance = manualDistance && distanceKm ? parseInt(distanceKm) : 5;
+
+      try {
+        const depCity = departureMetroStation || departure.city;
+        const arrCity = arrivalMetroStation || arrival.city;
+
+        await createTrip.mutateAsync({
+          voyageId: voyageId || undefined,
+          departureCity: depCity,
+          departureCountry: departure.country || 'XX',
+          departureCountryName: departure.countryName || departure.city,
+          arrivalCity: arrCity,
+          arrivalCountry: arrival.country || 'XX',
+          arrivalCountryName: arrival.countryName || arrival.city,
+          via: [],
+          departureDate,
+          departureTime: departureTime || undefined,
+          returnDate: returnDate || undefined,
+          arrivalTime: arrivalTime || undefined,
+          transportType,
+          company: company || undefined,
+          carType: carType || undefined,
+          ticketNumber: ticketNumber || undefined,
+          seatNumber: seatNumber || undefined,
+          bookingStatus,
+          price: price ? parseFloat(price) : undefined,
+          distanceKm: finalDistance,
+          notes: notes || undefined,
+        });
+
+        toast({
+          title: 'Trajet enregistré ! 🎉',
+          description: `${depCity} → ${arrCity}`,
+        });
+
+        if (voyageId) {
+          navigate(`/voyages/${voyageId}`);
+        } else {
+          navigate('/trips');
+        }
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur est survenue lors de l\'enregistrement.',
+          variant: 'destructive',
+        });
+      }
+
+      return;
+    }
+
+    // Non-metro flows
     if (!departure || !arrival || !departureDate) {
       toast({
         title: 'Champs requis',
@@ -319,90 +430,142 @@ export default function AddTrip() {
 
         {/* Departure & Arrival */}
         <div className="glass-card p-4 space-y-4">
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">Départ</Label>
-            <CityAutocomplete
-              value={departure}
-              onChange={(city) => {
-                setDeparture(city);
-                setDepartureStation(null);
-              }}
-              placeholder="Ville de départ"
-            />
-            {/* Train station select for departure */}
-            {transportType === 'train' && departure && (
-              <TrainStationSelect
-                cityName={departure.city}
-                countryCode={departure.country}
-                value={departureStation}
-                onChange={setDepartureStation}
-                label="Gare de départ"
-              />
-            )}
-            {/* Bus station select for departure */}
-            {transportType === 'bus' && departure && (
-              <BusStationSelect
-                cityName={departure.city}
-                countryCode={departure.country}
-                value={departureStation}
-                onChange={setDepartureStation}
-                label="Gare routière de départ"
-              />
-            )}
-          </div>
-
-          {departure && arrival && (
-            <div className="flex justify-center py-2">
-              <div className="flex items-center gap-2 text-sm flex-wrap">
-                <span className="flag-emoji">{getFlag(departure.country)}</span>
-                <span>{departure.city}</span>
-                <ArrowRight className="w-4 h-4 text-primary" />
-                {stopovers.filter(s => s.city).map((stop, i) => (
-                  <span key={i} className="flex items-center gap-2">
-                    <span className="flag-emoji">{getFlag(stop.country)}</span>
-                    <span>{stop.city}</span>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                  </span>
-                ))}
-                <span className="flag-emoji">{getFlag(arrival.country)}</span>
-                <span>{arrival.city}</span>
+          {transportType === 'metro' ? (
+            <>
+              <div className="text-xs text-primary bg-primary/10 px-3 py-2 rounded-lg">
+                🚇 Sélectionnez les villes puis les stations (Paris ou Londres)
               </div>
-            </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Départ (ville)</Label>
+                <CityAutocomplete
+                  value={departure}
+                  onChange={(city) => {
+                    setDeparture(city);
+                    setDepartureMetroStation(null);
+                  }}
+                  placeholder="Paris, Londres..."
+                />
+
+                {departure && isCityWithMetro(departure.city, departure.country) && (
+                  <MetroStationSelect
+                    city={isCityWithMetro(departure.city, departure.country)!}
+                    value={departureMetroStation}
+                    onChange={setDepartureMetroStation}
+                    label="Station de départ"
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Arrivée (ville)</Label>
+                <CityAutocomplete
+                  value={arrival}
+                  onChange={(city) => {
+                    setArrival(city);
+                    setArrivalMetroStation(null);
+                  }}
+                  placeholder="Paris, Londres..."
+                />
+
+                {arrival && isCityWithMetro(arrival.city, arrival.country) && (
+                  <MetroStationSelect
+                    city={isCityWithMetro(arrival.city, arrival.country)!}
+                    value={arrivalMetroStation}
+                    onChange={setArrivalMetroStation}
+                    label="Station d'arrivée"
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Départ</Label>
+                <CityAutocomplete
+                  value={departure}
+                  onChange={(city) => {
+                    setDeparture(city);
+                    setDepartureStation(null);
+                  }}
+                  placeholder="Ville de départ"
+                />
+                {/* Train station select for departure */}
+                {transportType === 'train' && departure && (
+                  <TrainStationSelect
+                    cityName={departure.city}
+                    countryCode={departure.country}
+                    value={departureStation}
+                    onChange={setDepartureStation}
+                    label="Gare de départ"
+                  />
+                )}
+                {/* Bus station select for departure */}
+                {transportType === 'bus' && departure && (
+                  <BusStationSelect
+                    cityName={departure.city}
+                    countryCode={departure.country}
+                    value={departureStation}
+                    onChange={setDepartureStation}
+                    label="Gare routière de départ"
+                  />
+                )}
+              </div>
+
+              {departure && arrival && (
+                <div className="flex justify-center py-2">
+                  <div className="flex items-center gap-2 text-sm flex-wrap">
+                    <span className="flag-emoji">{getFlag(departure.country)}</span>
+                    <span>{departure.city}</span>
+                    <ArrowRight className="w-4 h-4 text-primary" />
+                    {stopovers.filter(s => s.city).map((stop, i) => (
+                      <span key={i} className="flex items-center gap-2">
+                        <span className="flag-emoji">{getFlag(stop.country)}</span>
+                        <span>{stop.city}</span>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                      </span>
+                    ))}
+                    <span className="flag-emoji">{getFlag(arrival.country)}</span>
+                    <span>{arrival.city}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Arrivée</Label>
+                <CityAutocomplete
+                  value={arrival}
+                  onChange={(city) => {
+                    setArrival(city);
+                    setArrivalStation(null);
+                  }}
+                  placeholder="Ville d'arrivée"
+                />
+                {/* Train station select for arrival */}
+                {transportType === 'train' && arrival && (
+                  <TrainStationSelect
+                    cityName={arrival.city}
+                    countryCode={arrival.country}
+                    value={arrivalStation}
+                    onChange={setArrivalStation}
+                    label="Gare d'arrivée"
+                  />
+                )}
+                {/* Bus station select for arrival */}
+                {transportType === 'bus' && arrival && (
+                  <BusStationSelect
+                    cityName={arrival.city}
+                    countryCode={arrival.country}
+                    value={arrivalStation}
+                    onChange={setArrivalStation}
+                    label="Gare routière d'arrivée"
+                  />
+                )}
+              </div>
+
+              <StopoverInput stopovers={stopovers} onChange={setStopovers} />
+            </>
           )}
-
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">Arrivée</Label>
-            <CityAutocomplete
-              value={arrival}
-              onChange={(city) => {
-                setArrival(city);
-                setArrivalStation(null);
-              }}
-              placeholder="Ville d'arrivée"
-            />
-            {/* Train station select for arrival */}
-            {transportType === 'train' && arrival && (
-              <TrainStationSelect
-                cityName={arrival.city}
-                countryCode={arrival.country}
-                value={arrivalStation}
-                onChange={setArrivalStation}
-                label="Gare d'arrivée"
-              />
-            )}
-            {/* Bus station select for arrival */}
-            {transportType === 'bus' && arrival && (
-              <BusStationSelect
-                cityName={arrival.city}
-                countryCode={arrival.country}
-                value={arrivalStation}
-                onChange={setArrivalStation}
-                label="Gare routière d'arrivée"
-              />
-            )}
-          </div>
-
-          <StopoverInput stopovers={stopovers} onChange={setStopovers} />
         </div>
 
         {/* Dates & Times */}
