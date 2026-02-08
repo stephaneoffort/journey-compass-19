@@ -7,8 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { z } from 'zod';
-import { lovable } from '@/integrations/lovable';
-
+import { supabase } from '@/integrations/supabase/client';
 const authSchema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
@@ -30,18 +29,45 @@ export default function Auth() {
     setGoogleLoading(true);
 
     try {
-      // Use Lovable managed OAuth flow
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: `${window.location.origin}/auth/callback`,
+      // Avoid Lovable auth-bridge route ("/~oauth/initiate") which can 404 on some deployments.
+      // Instead, request the OAuth URL and redirect manually.
+      const redirectTo = `${window.location.origin}/auth/callback`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
       });
-      
+
       if (error) {
         toast({
           title: 'Erreur',
           description: error.message,
           variant: 'destructive',
         });
+        return;
       }
+
+      const url = data?.url;
+      if (!url) {
+        toast({
+          title: 'Erreur',
+          description: "Impossible d'initialiser la connexion Google.",
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Basic open-redirect protection: only allow redirects to our auth host.
+      const oauthUrl = new URL(url);
+      const allowedHost = new URL(import.meta.env.VITE_SUPABASE_URL).hostname;
+      if (oauthUrl.hostname !== allowedHost) {
+        throw new Error('URL OAuth invalide');
+      }
+
+      window.location.assign(url);
     } catch (e) {
       toast({
         title: 'Erreur',
