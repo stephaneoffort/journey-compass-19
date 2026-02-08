@@ -7,10 +7,9 @@ import { cn } from '@/lib/utils';
 
 interface InvoiceUploadProps {
   tripId: string;
-  bookingStatus?: string;
 }
 
-export function InvoiceUpload({ tripId, bookingStatus }: InvoiceUploadProps) {
+export function InvoiceUpload({ tripId }: InvoiceUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,11 +18,6 @@ export function InvoiceUpload({ tripId, bookingStatus }: InvoiceUploadProps) {
   const { data: invoices = [], isLoading } = useInvoices(tripId);
   const uploadMutation = useUploadInvoice();
   const deleteMutation = useDeleteInvoice();
-
-  // Only show for purchased trips
-  if (bookingStatus !== 'achete') {
-    return null;
-  }
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
