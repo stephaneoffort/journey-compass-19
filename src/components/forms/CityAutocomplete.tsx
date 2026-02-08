@@ -210,7 +210,11 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
                 {suggestions.map((city, index) => (
                   <div
                     key={`${city.city}-${city.country}`}
-                    onClick={() => handleSelect(city)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSelect(city);
+                    }}
                     className={`city-option ${focusedIndex === index ? 'bg-accent' : ''}`}
                   >
                     <span className="flag-emoji">{getFlag(city.country)}</span>
