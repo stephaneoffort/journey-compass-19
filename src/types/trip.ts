@@ -1,4 +1,4 @@
-export type TransportType = 'plane' | 'train' | 'car' | 'bus' | 'boat' | 'metro' | 'logement';
+export type TransportType = 'plane' | 'train' | 'car' | 'bus' | 'boat' | 'metro' | 'logement' | 'frais';
 export type TripStatus = 'completed' | 'planned' | 'cancelled';
 export type BookingStatus = 'recherche' | 'trouve' | 'achete';
 export type CarType = 'taxi' | 'uber' | 'bolt' | 'blablacar' | 'personnel';
@@ -12,6 +12,7 @@ export const transportLabels: Record<TransportType, string> = {
   boat: 'Bateau',
   metro: 'Métro',
   logement: 'Logement',
+  frais: 'Frais divers',
 };
 
 export const transportEmoji: Record<TransportType, string> = {
@@ -22,6 +23,7 @@ export const transportEmoji: Record<TransportType, string> = {
   boat: '🚢',
   metro: '🚇',
   logement: '🏨',
+  frais: '💰',
 };
 
 export const bookingStatusLabels: Record<BookingStatus, string> = {
@@ -57,7 +59,8 @@ export const co2PerKm: Record<TransportType, number> = {
   bus: 0.089,
   boat: 0.245,
   metro: 0.008,
-  logement: 0, // No CO2 for accommodation
+  logement: 0,
+  frais: 0, // No CO2 for miscellaneous expenses
 };
 
 export interface Location {

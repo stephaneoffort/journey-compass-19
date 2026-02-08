@@ -23,7 +23,7 @@ import { useCreateTrip } from '@/hooks/useTrips';
 import { calculateRouteDistance } from '@/utils/distance';
 import { useTripEstimate } from '@/hooks/useTripEstimate';
 
-const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro', 'logement'];
+const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro', 'logement', 'frais'];
 
 export default function AddTrip() {
   const { toast } = useToast();
@@ -166,8 +166,8 @@ export default function AddTrip() {
       setCarExpenses({ tollExpense: '', parkingExpense: '', otherExpense: '' });
     }
 
-    // Metro and logement trips don't support stopovers
-    if (type === 'metro' || type === 'logement') {
+    // Metro, logement and frais trips don't support stopovers
+    if (type === 'metro' || type === 'logement' || type === 'frais') {
       setStopovers([]);
     }
   };
@@ -286,6 +286,65 @@ export default function AddTrip() {
         });
       }
 
+      return;
+    }
+
+    // Frais divers: only date required, city is optional
+    if (transportType === 'frais') {
+      if (!departureDate) {
+        toast({
+          title: 'Champs requis',
+          description: 'Veuillez remplir la date.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Price is required when booking status is 'trouve' or 'achete'
+      if ((bookingStatus === 'trouve' || bookingStatus === 'achete') && !price) {
+        toast({
+          title: 'Prix requis',
+          description: 'Veuillez saisir le prix.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      try {
+        await createTrip.mutateAsync({
+          voyageId: voyageId || undefined,
+          departureCity: departure?.city || 'Frais divers',
+          departureCountry: departure?.country || 'XX',
+          departureCountryName: departure?.countryName || 'Frais',
+          arrivalCity: departure?.city || 'Frais divers',
+          arrivalCountry: departure?.country || 'XX',
+          arrivalCountryName: departure?.countryName || 'Frais',
+          via: [],
+          departureDate,
+          transportType,
+          bookingStatus,
+          price: price ? parseFloat(price) : undefined,
+          distanceKm: 0,
+          notes: notes || undefined,
+        });
+
+        toast({
+          title: 'Frais enregistrés ! 🎉',
+          description: departure?.city || 'Frais divers',
+        });
+
+        if (voyageId) {
+          navigate(`/voyages/${voyageId}`);
+        } else {
+          navigate('/trips');
+        }
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur est survenue lors de l\'enregistrement.',
+          variant: 'destructive',
+        });
+      }
       return;
     }
 
@@ -470,7 +529,20 @@ export default function AddTrip() {
 
         {/* Departure & Arrival */}
         <div className="glass-card p-4 space-y-4">
-          {transportType === 'logement' ? (
+          {transportType === 'frais' ? (
+            // Frais divers: optional single city
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Lieu (optionnel)</Label>
+              <CityAutocomplete
+                value={departure}
+                onChange={(city) => {
+                  setDeparture(city);
+                  setArrival(city);
+                }}
+                placeholder="Ville (optionnel)"
+              />
+            </div>
+          ) : transportType === 'logement' ? (
             // Logement: only one city field
             <div className="space-y-2">
               <Label className="text-muted-foreground">Lieu d'hébergement</Label>
@@ -622,13 +694,12 @@ export default function AddTrip() {
           )}
         </div>
 
-        {/* Dates & Times - Hide times for logement */}
+        {/* Dates & Times - Hide times for logement and frais */}
         <div className="glass-card p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          {transportType === 'frais' ? (
+            // Frais: just a single date field
             <div className="space-y-2">
-              <Label className="text-muted-foreground">
-                {transportType === 'logement' ? 'Date d\'arrivée' : 'Date de départ'}
-              </Label>
+              <Label className="text-muted-foreground">Date</Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -640,63 +711,83 @@ export default function AddTrip() {
                 />
               </div>
             </div>
-            {transportType !== 'logement' && (
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Heure de départ</Label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="time"
-                    value={departureTime}
-                    onChange={(e) => setDepartureTime(e.target.value)}
-                    className="input-glass pl-10"
-                  />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">
+                    {transportType === 'logement' ? 'Date d\'arrivée' : 'Date de départ'}
+                  </Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={departureDate}
+                      onChange={(e) => setDepartureDate(e.target.value)}
+                      className="input-glass pl-10"
+                      required
+                    />
+                  </div>
                 </div>
+                {transportType !== 'logement' && (
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Heure de départ</Label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="time"
+                        value={departureTime}
+                        onChange={(e) => setDepartureTime(e.target.value)}
+                        className="input-glass pl-10"
+                      />
+                    </div>
+                  </div>
+                )}
+                {transportType === 'logement' && (
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Date de départ</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="date"
+                        value={returnDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className="input-glass pl-10"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {transportType === 'logement' && (
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Date de départ</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    className="input-glass pl-10"
-                  />
+              
+              {transportType !== 'logement' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Date retour (opt.)</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="date"
+                        value={returnDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className="input-glass pl-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Heure arrivée</Label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="time"
+                        value={arrivalTime}
+                        onChange={(e) => setArrivalTime(e.target.value)}
+                        className="input-glass pl-10"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-          
-          {transportType !== 'logement' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Date retour (opt.)</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="date"
-                    value={returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    className="input-glass pl-10"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Heure arrivée</Label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="time"
-                    value={arrivalTime}
-                    onChange={(e) => setArrivalTime(e.target.value)}
-                    className="input-glass pl-10"
-                  />
-                </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
         </div>
 
