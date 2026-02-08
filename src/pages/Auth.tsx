@@ -48,11 +48,13 @@ export default function Auth() {
         localStorage.removeItem('supabase.auth.token');
       }
 
-      // In production (published domain), bypass the Lovable OAuth broker
-      // because /~oauth/initiate is preview-only and can 404 on published domains.
-      const isPublishedDomain = window.location.hostname.endsWith('lovable.app');
+      // Detect environment: published domain (.lovable.app) vs preview (.lovableproject.com)
+      const hostname = window.location.hostname;
+      const isPublishedDomain = hostname.endsWith('.lovable.app') && !hostname.includes('preview');
+      const isPreviewDomain = hostname.endsWith('.lovableproject.com') || hostname.includes('-preview--');
 
       if (isPublishedDomain) {
+        // On published domain, use Supabase OAuth directly (requires manual OAuth credentials setup)
         const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
@@ -67,7 +69,6 @@ export default function Auth() {
         if (error) throw error;
 
         if (oauthData?.url) {
-          // Supabase returns its own auth URL which then redirects to Google
           window.location.href = oauthData.url;
           return;
         }
