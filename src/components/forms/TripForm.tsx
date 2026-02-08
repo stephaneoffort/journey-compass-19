@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { CityAutocomplete } from './CityAutocomplete';
 import { StationAutocomplete } from './StationAutocomplete';
 import { TrainStationSelect } from './TrainStationSelect';
+import { BusStationSelect } from './BusStationSelect';
 import { StopoverInput } from './StopoverInput';
 import { TransportOptions } from './TransportOptions';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
@@ -73,6 +74,10 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
   // Train stations (for French train trips)
   const [departureTrainStation, setDepartureTrainStation] = useState<string | null>(null);
   const [arrivalTrainStation, setArrivalTrainStation] = useState<string | null>(null);
+  
+  // Bus stations (for French bus trips)
+  const [departureBusStation, setDepartureBusStation] = useState<string | null>(null);
+  const [arrivalBusStation, setArrivalBusStation] = useState<string | null>(null);
   
   // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
@@ -450,6 +455,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                 onChange={(city) => {
                   setDeparture(city);
                   setDepartureTrainStation(null);
+                  setDepartureBusStation(null);
                 }}
                 placeholder="Ville de départ"
               />
@@ -465,13 +471,24 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                   label="Gare de départ"
                 />
               )}
+              
+              {/* Bus station selector for French cities */}
+              {transportType === 'bus' && departure && (
+                <BusStationSelect
+                  cityName={departure.city}
+                  countryCode={departure.country}
+                  value={departureBusStation}
+                  onChange={setDepartureBusStation}
+                  label="Gare routière de départ"
+                />
+              )}
             </div>
 
             {departure && arrival && (
               <div className="flex justify-center py-2">
                 <div className="flex items-center gap-2 text-sm flex-wrap">
                   <span className="flag-emoji">{getFlag(departure.country)}</span>
-                  <span>{departureTrainStation || departure.city}</span>
+                  <span>{departureBusStation || departureTrainStation || departure.city}</span>
                   <ArrowRight className="w-4 h-4 text-primary" />
                   {stopovers.filter(s => s.city).map((stop, i) => (
                     <span key={i} className="flex items-center gap-2">
@@ -481,7 +498,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                     </span>
                   ))}
                   <span className="flag-emoji">{getFlag(arrival.country)}</span>
-                  <span>{arrivalTrainStation || arrival.city}</span>
+                  <span>{arrivalBusStation || arrivalTrainStation || arrival.city}</span>
                 </div>
               </div>
             )}
@@ -493,6 +510,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                 onChange={(city) => {
                   setArrival(city);
                   setArrivalTrainStation(null);
+                  setArrivalBusStation(null);
                 }}
                 placeholder="Ville d'arrivée"
               />
@@ -506,6 +524,17 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                   value={arrivalTrainStation}
                   onChange={setArrivalTrainStation}
                   label="Gare d'arrivée"
+                />
+              )}
+              
+              {/* Bus station selector for French cities */}
+              {transportType === 'bus' && arrival && (
+                <BusStationSelect
+                  cityName={arrival.city}
+                  countryCode={arrival.country}
+                  value={arrivalBusStation}
+                  onChange={setArrivalBusStation}
+                  label="Gare routière d'arrivée"
                 />
               )}
             </div>
