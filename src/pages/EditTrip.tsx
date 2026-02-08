@@ -5,6 +5,9 @@ import { useTrip, useUpdateTrip } from '@/hooks/useTrips';
 import { CityAutocomplete } from '@/components/forms/CityAutocomplete';
 import { StopoverInput } from '@/components/forms/StopoverInput';
 import { TransportOptions } from '@/components/forms/TransportOptions';
+import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
+import { BusStationSelect } from '@/components/forms/BusStationSelect';
+import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroStationSelect';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
@@ -38,6 +41,18 @@ export default function EditTrip() {
   const [departure, setDeparture] = useState<CityData | null>(null);
   const [arrival, setArrival] = useState<CityData | null>(null);
   const [stopovers, setStopovers] = useState<Location[]>([]);
+  
+  // Train stations (for French train trips)
+  const [departureTrainStation, setDepartureTrainStation] = useState<string | null>(null);
+  const [arrivalTrainStation, setArrivalTrainStation] = useState<string | null>(null);
+  
+  // Bus stations (for French bus trips)
+  const [departureBusStation, setDepartureBusStation] = useState<string | null>(null);
+  const [arrivalBusStation, setArrivalBusStation] = useState<string | null>(null);
+  
+  // Metro stations (for Paris/London metro trips)
+  const [departureMetroStation, setDepartureMetroStation] = useState<string | null>(null);
+  const [arrivalMetroStation, setArrivalMetroStation] = useState<string | null>(null);
   
   // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
@@ -151,7 +166,17 @@ export default function EditTrip() {
     setCarType('');
     setTicketNumber('');
     setSeatNumber('');
+    // Reset station selections when transport type changes
+    setDepartureTrainStation(null);
+    setArrivalTrainStation(null);
+    setDepartureBusStation(null);
+    setArrivalBusStation(null);
+    setDepartureMetroStation(null);
+    setArrivalMetroStation(null);
   };
+  
+  // Check if we're in metro mode for Paris/London
+  const isMetroMode = transportType === 'metro';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -322,21 +347,64 @@ export default function EditTrip() {
 
         {/* Departure & Arrival */}
         <div className="glass-card p-4 space-y-4">
+          {isMetroMode && (
+            <div className="text-xs text-primary bg-primary/10 px-3 py-2 rounded-lg mb-2">
+              🚇 Sélectionnez les villes puis les stations de métro (Paris ou Londres)
+            </div>
+          )}
+          
           <div className="space-y-2">
             <Label className="text-muted-foreground">Départ</Label>
             <CityAutocomplete
               value={departure}
-              onChange={setDeparture}
+              onChange={(city) => {
+                setDeparture(city);
+                setDepartureTrainStation(null);
+                setDepartureBusStation(null);
+                setDepartureMetroStation(null);
+              }}
               placeholder="Ville de départ"
             />
             {errors.departure && <p className="text-xs text-destructive">{errors.departure}</p>}
+            
+            {/* Train station selector for French cities */}
+            {transportType === 'train' && departure && (
+              <TrainStationSelect
+                cityName={departure.city}
+                countryCode={departure.country}
+                value={departureTrainStation}
+                onChange={setDepartureTrainStation}
+                label="Gare de départ"
+              />
+            )}
+            
+            {/* Bus station selector for French cities */}
+            {transportType === 'bus' && departure && (
+              <BusStationSelect
+                cityName={departure.city}
+                countryCode={departure.country}
+                value={departureBusStation}
+                onChange={setDepartureBusStation}
+                label="Gare routière de départ"
+              />
+            )}
+            
+            {/* Metro station selector for Paris/London */}
+            {transportType === 'metro' && departure && isCityWithMetro(departure.city, departure.country) && (
+              <MetroStationSelect
+                city={isCityWithMetro(departure.city, departure.country)!}
+                value={departureMetroStation}
+                onChange={setDepartureMetroStation}
+                label="Station de départ"
+              />
+            )}
           </div>
 
           {departure && arrival && (
             <div className="flex justify-center py-2">
               <div className="flex items-center gap-2 text-sm flex-wrap">
                 <span className="flag-emoji">{getFlag(departure.country)}</span>
-                <span>{departure.city}</span>
+                <span>{departureMetroStation || departureTrainStation || departureBusStation || departure.city}</span>
                 <ArrowRight className="w-4 h-4 text-primary" />
                 {stopovers.filter(s => s.city).map((stop, i) => (
                   <span key={i} className="flex items-center gap-2">
@@ -346,7 +414,7 @@ export default function EditTrip() {
                   </span>
                 ))}
                 <span className="flag-emoji">{getFlag(arrival.country)}</span>
-                <span>{arrival.city}</span>
+                <span>{arrivalMetroStation || arrivalTrainStation || arrivalBusStation || arrival.city}</span>
               </div>
             </div>
           )}
@@ -355,10 +423,47 @@ export default function EditTrip() {
             <Label className="text-muted-foreground">Arrivée</Label>
             <CityAutocomplete
               value={arrival}
-              onChange={setArrival}
+              onChange={(city) => {
+                setArrival(city);
+                setArrivalTrainStation(null);
+                setArrivalBusStation(null);
+                setArrivalMetroStation(null);
+              }}
               placeholder="Ville d'arrivée"
             />
             {errors.arrival && <p className="text-xs text-destructive">{errors.arrival}</p>}
+            
+            {/* Train station selector for French cities */}
+            {transportType === 'train' && arrival && (
+              <TrainStationSelect
+                cityName={arrival.city}
+                countryCode={arrival.country}
+                value={arrivalTrainStation}
+                onChange={setArrivalTrainStation}
+                label="Gare d'arrivée"
+              />
+            )}
+            
+            {/* Bus station selector for French cities */}
+            {transportType === 'bus' && arrival && (
+              <BusStationSelect
+                cityName={arrival.city}
+                countryCode={arrival.country}
+                value={arrivalBusStation}
+                onChange={setArrivalBusStation}
+                label="Gare routière d'arrivée"
+              />
+            )}
+            
+            {/* Metro station selector for Paris/London */}
+            {transportType === 'metro' && arrival && isCityWithMetro(arrival.city, arrival.country) && (
+              <MetroStationSelect
+                city={isCityWithMetro(arrival.city, arrival.country)!}
+                value={arrivalMetroStation}
+                onChange={setArrivalMetroStation}
+                label="Station d'arrivée"
+              />
+            )}
           </div>
 
           <StopoverInput stopovers={stopovers} onChange={setStopovers} />
