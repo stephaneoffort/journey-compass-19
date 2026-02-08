@@ -137,11 +137,14 @@ export type Database = {
           distance_km: number
           id: string
           notes: string | null
+          other_expense: number | null
+          parking_expense: number | null
           price: number | null
           return_date: string | null
           seat_number: string | null
           status: string
           ticket_number: string | null
+          toll_expense: number | null
           transport_type: string
           updated_at: string
           user_id: string
@@ -169,11 +172,14 @@ export type Database = {
           distance_km?: number
           id?: string
           notes?: string | null
+          other_expense?: number | null
+          parking_expense?: number | null
           price?: number | null
           return_date?: string | null
           seat_number?: string | null
           status?: string
           ticket_number?: string | null
+          toll_expense?: number | null
           transport_type: string
           updated_at?: string
           user_id: string
@@ -201,11 +207,14 @@ export type Database = {
           distance_km?: number
           id?: string
           notes?: string | null
+          other_expense?: number | null
+          parking_expense?: number | null
           price?: number | null
           return_date?: string | null
           seat_number?: string | null
           status?: string
           ticket_number?: string | null
+          toll_expense?: number | null
           transport_type?: string
           updated_at?: string
           user_id?: string

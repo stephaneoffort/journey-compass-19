@@ -30,6 +30,9 @@ interface TripInsert {
   notes?: string;
   departureStation?: string;
   arrivalStation?: string;
+  tollExpense?: number;
+  parkingExpense?: number;
+  otherExpense?: number;
 }
 
 function mapDbToTrip(row: any): Trip {
@@ -61,6 +64,9 @@ function mapDbToTrip(row: any): Trip {
     notes: row.notes,
     departureStation: row.departure_station || undefined,
     arrivalStation: row.arrival_station || undefined,
+    tollExpense: row.toll_expense ? parseFloat(row.toll_expense) : undefined,
+    parkingExpense: row.parking_expense ? parseFloat(row.parking_expense) : undefined,
+    otherExpense: row.other_expense ? parseFloat(row.other_expense) : undefined,
     invoiceUrls: [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -148,6 +154,9 @@ export function useCreateTrip() {
           notes: trip.notes || null,
           departure_station: trip.departureStation || null,
           arrival_station: trip.arrivalStation || null,
+          toll_expense: trip.tollExpense || null,
+          parking_expense: trip.parkingExpense || null,
+          other_expense: trip.otherExpense || null,
         })
         .select()
         .single();
@@ -205,6 +214,9 @@ export function useUpdateTrip() {
       if (updates.notes !== undefined) updateData.notes = updates.notes;
       if (updates.departureStation !== undefined) updateData.departure_station = updates.departureStation;
       if (updates.arrivalStation !== undefined) updateData.arrival_station = updates.arrivalStation;
+      if (updates.tollExpense !== undefined) updateData.toll_expense = updates.tollExpense;
+      if (updates.parkingExpense !== undefined) updateData.parking_expense = updates.parkingExpense;
+      if (updates.otherExpense !== undefined) updateData.other_expense = updates.otherExpense;
 
       const { data, error } = await supabase
         .from('trips')

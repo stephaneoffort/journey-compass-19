@@ -96,6 +96,9 @@ export interface Trip {
   notes?: string;
   departureStation?: string;
   arrivalStation?: string;
+  tollExpense?: number;
+  parkingExpense?: number;
+  otherExpense?: number;
   invoiceUrls: string[];
   createdAt: string;
   updatedAt: string;

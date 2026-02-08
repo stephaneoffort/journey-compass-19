@@ -7,6 +7,7 @@ import { TransportOptions } from '@/components/forms/TransportOptions';
 import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
 import { BusStationSelect } from '@/components/forms/BusStationSelect';
 import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroStationSelect';
+import { CarExpenses, CarExpensesData } from '@/components/forms/CarExpenses';
 import { TripEstimateCard } from '@/components/trips/TripEstimateCard';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
@@ -64,6 +65,13 @@ export default function AddTrip() {
   const [manualDistance, setManualDistance] = useState(false);
   const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // Car expenses (for personal vehicle or other)
+  const [carExpenses, setCarExpenses] = useState<CarExpensesData>({
+    tollExpense: '',
+    parkingExpense: '',
+    otherExpense: '',
+  });
 
   // AI Estimate
   const { estimate, isLoading: isEstimating, error: estimateError, fetchEstimate, clearEstimate } = useTripEstimate();
@@ -152,6 +160,11 @@ export default function AddTrip() {
     setArrivalStation(null);
     setDepartureMetroStation(null);
     setArrivalMetroStation(null);
+    
+    // Reset car expenses when switching away from car
+    if (type !== 'car') {
+      setCarExpenses({ tollExpense: '', parkingExpense: '', otherExpense: '' });
+    }
 
     // Metro and logement trips don't support stopovers
     if (type === 'metro' || type === 'logement') {
@@ -316,6 +329,9 @@ export default function AddTrip() {
                        : transportType === 'bus' ? arrivalStation 
                        : undefined;
 
+      // Car expenses (only for personal vehicle or other - we'll include if carType is personnel)
+      const showCarExpenses = transportType === 'car' && (carType === 'personnel');
+      
       await createTrip.mutateAsync({
         voyageId: voyageId || undefined,
         departureCity: departure.city,
@@ -341,6 +357,9 @@ export default function AddTrip() {
         notes: notes || undefined,
         departureStation: depStation || undefined,
         arrivalStation: arrStation || undefined,
+        tollExpense: showCarExpenses && carExpenses.tollExpense ? parseFloat(carExpenses.tollExpense) : undefined,
+        parkingExpense: showCarExpenses && carExpenses.parkingExpense ? parseFloat(carExpenses.parkingExpense) : undefined,
+        otherExpense: showCarExpenses && carExpenses.otherExpense ? parseFloat(carExpenses.otherExpense) : undefined,
       });
 
       toast({
@@ -441,6 +460,11 @@ export default function AddTrip() {
                 required
               />
             </div>
+          )}
+          
+          {/* Car expenses for personal vehicle */}
+          {transportType === 'car' && carType === 'personnel' && (
+            <CarExpenses expenses={carExpenses} onChange={setCarExpenses} />
           )}
         </div>
 
