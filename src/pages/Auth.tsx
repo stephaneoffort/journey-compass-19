@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,8 +29,47 @@ export default function Auth() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+
     try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
+      const isCustomDomain =
+        !window.location.hostname.includes('lovable.app') &&
+        !window.location.hostname.includes('lovableproject.com');
+
+      if (isCustomDomain) {
+        // Custom domains: bypass auth-bridge and redirect manually
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: true,
+          },
+        });
+
+        if (error) {
+          toast({
+            title: 'Erreur',
+            description: error.message,
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        const url = data?.url;
+        if (url) {
+          // Security: prevent open redirects
+          const oauthUrl = new URL(url);
+          const allowedHosts = ['accounts.google.com'];
+          if (!allowedHosts.includes(oauthUrl.hostname)) {
+            throw new Error("URL OAuth inattendue");
+          }
+          window.location.href = url;
+        }
+
+        return;
+      }
+
+      // Lovable domains: normal managed flow
+      const { error } = await lovable.auth.signInWithOAuth('google', {
         redirect_uri: window.location.origin,
       });
       if (error) {
@@ -39,6 +79,12 @@ export default function Auth() {
           variant: 'destructive',
         });
       }
+    } catch (e) {
+      toast({
+        title: 'Erreur',
+        description: e instanceof Error ? e.message : 'Erreur inconnue',
+        variant: 'destructive',
+      });
     } finally {
       setGoogleLoading(false);
     }
