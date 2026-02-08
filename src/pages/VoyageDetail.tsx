@@ -221,7 +221,11 @@ export default function VoyageDetail() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => generateVoyageExcel(voyage)}
+            onClick={async () => {
+              toast({ title: 'Génération en cours...' });
+              await generateVoyageExcel(voyage);
+              toast({ title: 'Fichier téléchargé !' });
+            }}
           >
             <Download className="w-4 h-4 mr-2" />
             Télécharger la feuille de calculs (.xlsx)
