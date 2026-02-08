@@ -23,7 +23,8 @@ import { useCreateTrip } from '@/hooks/useTrips';
 import { calculateRouteDistance } from '@/utils/distance';
 import { useTripEstimate } from '@/hooks/useTripEstimate';
 
-const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro', 'logement', 'frais'];
+const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro'];
+const accommodationTypes: TransportType[] = ['logement', 'frais'];
 
 export default function AddTrip() {
   const { toast } = useToast();
@@ -533,6 +534,29 @@ export default function AddTrip() {
           <Label className="text-muted-foreground">Type de transport</Label>
           <div className="grid grid-cols-3 gap-2">
             {transportTypes.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => handleTransportTypeChange(type)}
+                className={cn(
+                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                  transportType === type
+                    ? `transport-${type} ring-2 ring-current`
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="text-2xl">{transportEmoji[type]}</span>
+                <span className="text-xs font-medium">{transportLabels[type]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Logement et frais */}
+        <div className="space-y-3">
+          <Label className="text-muted-foreground">Logement et frais</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {accommodationTypes.map((type) => (
               <button
                 key={type}
                 type="button"
