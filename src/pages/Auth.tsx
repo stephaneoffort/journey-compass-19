@@ -25,12 +25,22 @@ export default function Auth() {
   
   const { user, loading: authLoading, signIn, signUp } = useAuth();
 
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/', { replace: true });
+    }
+  }, [authLoading, user, navigate]);
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
 
     try {
-      // Avoid Lovable auth-bridge route ("/~oauth/initiate") which can 404 on some deployments.
-      // Instead, request the OAuth URL and redirect manually.
+      // We bypass the Lovable auth-bridge ("/~oauth/initiate") which 404s
+      // and instead request the OAuth URL directly from backend, then redirect manually.
       const redirectTo = `${window.location.origin}/auth/callback`;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -38,6 +48,10 @@ export default function Auth() {
         options: {
           redirectTo,
           skipBrowserRedirect: true,
+          queryParams: {
+            // Force account selection screen every time
+            prompt: 'select_account',
+          },
         },
       });
 
@@ -60,13 +74,14 @@ export default function Auth() {
         return;
       }
 
-      // Basic open-redirect protection: only allow redirects to our auth host.
+      // Open-redirect protection: only allow redirects to our auth backend host.
       const oauthUrl = new URL(url);
       const allowedHost = new URL(import.meta.env.VITE_SUPABASE_URL).hostname;
       if (oauthUrl.hostname !== allowedHost) {
         throw new Error('URL OAuth invalide');
       }
 
+      // Navigate to OAuth provider
       window.location.assign(url);
     } catch (e) {
       toast({
@@ -74,18 +89,10 @@ export default function Auth() {
         description: e instanceof Error ? e.message : 'Erreur inconnue',
         variant: 'destructive',
       });
-    } finally {
       setGoogleLoading(false);
     }
+    // Note: we don't setGoogleLoading(false) on success because we're navigating away
   };
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (!authLoading && user) {
-      navigate('/add', { replace: true });
-    }
-  }, [authLoading, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +130,7 @@ export default function Auth() {
             });
           }
         } else {
-          navigate('/add');
+          navigate('/');
         }
       } else {
         const { error } = await signUp(email, password, fullName);
