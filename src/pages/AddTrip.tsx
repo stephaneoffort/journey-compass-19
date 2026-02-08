@@ -225,15 +225,13 @@ export default function AddTrip() {
       const finalDistance = manualDistance && distanceKm ? parseInt(distanceKm) : 5;
 
       try {
-        const depCity = departureMetroStation || departure.city;
-        const arrCity = arrivalMetroStation || arrival.city;
 
         await createTrip.mutateAsync({
           voyageId: voyageId || undefined,
-          departureCity: depCity,
+          departureCity: departure.city,
           departureCountry: departure.country || 'XX',
           departureCountryName: departure.countryName || departure.city,
-          arrivalCity: arrCity,
+          arrivalCity: arrival.city,
           arrivalCountry: arrival.country || 'XX',
           arrivalCountryName: arrival.countryName || arrival.city,
           via: [],
@@ -250,11 +248,13 @@ export default function AddTrip() {
           price: price ? parseFloat(price) : undefined,
           distanceKm: finalDistance,
           notes: notes || undefined,
+          departureStation: departureMetroStation || undefined,
+          arrivalStation: arrivalMetroStation || undefined,
         });
 
         toast({
           title: 'Trajet enregistré ! 🎉',
-          description: `${depCity} → ${arrCity}`,
+          description: `${departureMetroStation || departure.city} → ${arrivalMetroStation || arrival.city}`,
         });
 
         if (voyageId) {
@@ -305,6 +305,14 @@ export default function AddTrip() {
     const finalDistance = distanceKm ? parseInt(distanceKm) : 0;
 
     try {
+      // Determine station names based on transport type
+      const depStation = transportType === 'train' ? departureStation 
+                       : transportType === 'bus' ? departureStation 
+                       : undefined;
+      const arrStation = transportType === 'train' ? arrivalStation 
+                       : transportType === 'bus' ? arrivalStation 
+                       : undefined;
+
       await createTrip.mutateAsync({
         voyageId: voyageId || undefined,
         departureCity: departure.city,
@@ -327,6 +335,8 @@ export default function AddTrip() {
         price: price ? parseFloat(price) : undefined,
         distanceKm: finalDistance,
         notes: notes || undefined,
+        departureStation: depStation || undefined,
+        arrivalStation: arrStation || undefined,
       });
 
       toast({

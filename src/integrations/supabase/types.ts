@@ -120,6 +120,7 @@ export type Database = {
           arrival_city: string
           arrival_country: string
           arrival_country_name: string
+          arrival_station: string | null
           arrival_time: string | null
           booking_status: string | null
           car_type: string | null
@@ -130,6 +131,7 @@ export type Database = {
           departure_country: string
           departure_country_name: string
           departure_date: string
+          departure_station: string | null
           departure_time: string | null
           distance_km: number
           id: string
@@ -149,6 +151,7 @@ export type Database = {
           arrival_city: string
           arrival_country: string
           arrival_country_name: string
+          arrival_station?: string | null
           arrival_time?: string | null
           booking_status?: string | null
           car_type?: string | null
@@ -159,6 +162,7 @@ export type Database = {
           departure_country: string
           departure_country_name: string
           departure_date: string
+          departure_station?: string | null
           departure_time?: string | null
           distance_km?: number
           id?: string
@@ -178,6 +182,7 @@ export type Database = {
           arrival_city?: string
           arrival_country?: string
           arrival_country_name?: string
+          arrival_station?: string | null
           arrival_time?: string | null
           booking_status?: string | null
           car_type?: string | null
@@ -188,6 +193,7 @@ export type Database = {
           departure_country?: string
           departure_country_name?: string
           departure_date?: string
+          departure_station?: string | null
           departure_time?: string | null
           distance_km?: number
           id?: string

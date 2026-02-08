@@ -84,6 +84,8 @@ export interface Trip {
   co2Kg: number;
   status: TripStatus;
   notes?: string;
+  departureStation?: string;
+  arrivalStation?: string;
   invoiceUrls: string[];
   createdAt: string;
   updatedAt: string;
