@@ -185,7 +185,7 @@ export default function VoyageDetail() {
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Déplacements
             </h2>
-            <Link to={`/add?voyageId=${voyage.id}`}>
+            <Link to={`/add-single?voyageId=${voyage.id}`}>
               <Button variant="ghost" size="sm" className="text-primary">
                 <Plus className="w-4 h-4 mr-1" />
                 Ajouter
