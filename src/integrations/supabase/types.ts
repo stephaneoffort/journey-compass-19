@@ -115,6 +115,71 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trip_reminders: {
+        Row: {
+          created_at: string
+          hours_before: number
+          id: string
+          reminder_time: string
+          sent: boolean
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hours_before?: number
+          id?: string
+          reminder_time: string
+          sent?: boolean
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hours_before?: number
+          id?: string
+          reminder_time?: string
+          sent?: boolean
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_reminders_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           accommodation_type: string | null
