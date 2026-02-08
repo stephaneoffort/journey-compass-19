@@ -764,17 +764,31 @@ export default function AddTrip() {
         {/* Dates & Times - Hide times for logement and frais */}
         <div className="glass-card p-4 space-y-4">
           {transportType === 'frais' ? (
-            // Frais: just a single date field
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Date</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            // Frais: date + price field
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Date</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    className="input-glass pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Montant (€)</Label>
                 <Input
-                  type="date"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="input-glass pl-10"
-                  required
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Ex: 25.50"
+                  className="input-glass"
                 />
               </div>
             </div>
@@ -858,8 +872,8 @@ export default function AddTrip() {
           )}
         </div>
 
-        {/* Distance & CO2 - Auto-calculated (hidden for logement) */}
-        {(departure && arrival) && transportType !== 'logement' && (
+        {/* Distance & CO2 - Auto-calculated (hidden for logement and frais) */}
+        {(departure && arrival) && transportType !== 'logement' && transportType !== 'frais' && (
           <div className="glass-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -885,8 +899,8 @@ export default function AddTrip() {
           </div>
         )}
 
-        {/* AI Estimation (hidden for logement) */}
-        {(departure && arrival) && transportType !== 'logement' && (
+        {/* AI Estimation (hidden for logement and frais) */}
+        {(departure && arrival) && transportType !== 'logement' && transportType !== 'frais' && (
           <TripEstimateCard
             estimate={estimate}
             isLoading={isEstimating}
