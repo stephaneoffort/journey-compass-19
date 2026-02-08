@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Calendar, Clock, Save, Loader2, Route } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Save, Loader2, Route, Euro } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useCreateTrip } from '@/hooks/useTrips';
@@ -781,15 +781,18 @@ export default function AddTrip() {
               </div>
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Montant (€)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="Ex: 25.50"
-                  className="input-glass"
-                />
+                <div className="relative">
+                  <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="Ex: 25.50"
+                    className="input-glass pl-10"
+                  />
+                </div>
               </div>
             </div>
           ) : (
