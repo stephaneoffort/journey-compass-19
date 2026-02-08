@@ -341,9 +341,15 @@ export default function AddTrip() {
           navigate('/trips');
         }
       } catch (error) {
+        console.error('[AddTrip] logement create error', error);
+        const message =
+          typeof error === 'object' && error && 'message' in error
+            ? String((error as any).message)
+            : 'Une erreur est survenue lors de l\'enregistrement.';
+
         toast({
           title: 'Erreur',
-          description: 'Une erreur est survenue lors de l\'enregistrement.',
+          description: message,
           variant: 'destructive',
         });
       }
