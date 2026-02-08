@@ -129,8 +129,8 @@ export function VoyageSummary({ trips }: VoyageSummaryProps) {
                   )}
                 </div>
 
-                {/* Duration estimate and distance */}
-                {trip.distanceKm > 0 && (
+                {/* Duration estimate and distance (hidden for logement) */}
+                {trip.distanceKm > 0 && trip.transportType !== 'logement' && (
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
