@@ -1,10 +1,16 @@
 import { useState, useMemo } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
-import { transportEmoji, getFlag } from '@/types/trip';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { transportEmoji, transportLabels, getFlag } from '@/types/trip';
+import { ChevronLeft, ChevronRight, Loader2, X, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function CalendarView() {
   const { data: trips = [], isLoading } = useTrips();
@@ -28,7 +34,13 @@ export default function CalendarView() {
   }, [trips]);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const selectedTrips = selectedDate ? tripsByDate[selectedDate] || [] : [];
+
+  const handleDateClick = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    setIsDialogOpen(true);
+  };
 
   const navigateMonth = (direction: number) => {
     setCurrentDate(new Date(year, month + direction, 1));
@@ -99,7 +111,7 @@ export default function CalendarView() {
             return (
               <button
                 key={day}
-                onClick={() => setSelectedDate(dateStr)}
+                onClick={() => handleDateClick(dateStr)}
                 className={cn(
                   'aspect-square rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-sm',
                   isSelected && 'bg-primary text-primary-foreground',
@@ -128,43 +140,125 @@ export default function CalendarView() {
             );
           })}
         </div>
+      </div>
 
-        {/* Selected date details */}
-        {selectedDate && (
-          <div className="glass-card p-4 animate-slide-up">
-            <h3 className="font-medium mb-3">
-              {new Date(selectedDate).toLocaleDateString('fr-FR', { 
+      {/* Trip details popup */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              {selectedDate && new Date(selectedDate).toLocaleDateString('fr-FR', { 
                 weekday: 'long',
                 day: 'numeric', 
-                month: 'long' 
+                month: 'long',
+                year: 'numeric'
               })}
-            </h3>
-            {selectedTrips.length > 0 ? (
-              <div className="space-y-3">
-                {selectedTrips.map(trip => (
-                  <div key={trip.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
-                    <span className="text-2xl">{transportEmoji[trip.transportType]}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 font-medium">
-                        <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
-                        {trip.departureCity}
-                        <span className="text-muted-foreground">→</span>
-                        <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
-                        {trip.arrivalCity}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedTrips.length > 0 ? (
+            <div className="space-y-4 mt-2">
+              {selectedTrips.map(trip => (
+                <div 
+                  key={trip.id} 
+                  className="p-4 rounded-xl bg-secondary/50 border border-border"
+                >
+                  {/* Transport type header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-3xl">{transportEmoji[trip.transportType]}</span>
+                    <div>
+                      <div className="font-semibold text-foreground">
+                        {transportLabels[trip.transportType]}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {trip.distanceKm.toLocaleString('fr-FR')} km • {trip.co2Kg.toFixed(0)} kg CO₂
-                      </div>
+                      {trip.company && (
+                        <div className="text-sm text-muted-foreground">{trip.company}</div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">Aucun trajet ce jour</p>
-            )}
-          </div>
-        )}
-      </div>
+
+                  {/* Route or location */}
+                  {trip.transportType === 'logement' ? (
+                    <div className="flex items-center gap-2 text-sm mb-3">
+                      <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
+                      <span className="font-medium">{trip.departureCity}</span>
+                    </div>
+                  ) : trip.transportType !== 'frais' && (
+                    <div className="flex items-center gap-2 text-sm mb-3 flex-wrap">
+                      <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
+                      <span className="font-medium">{trip.departureCity}</span>
+                      {trip.departureStation && (
+                        <span className="text-muted-foreground text-xs">({trip.departureStation})</span>
+                      )}
+                      <span className="text-muted-foreground">→</span>
+                      <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
+                      <span className="font-medium">{trip.arrivalCity}</span>
+                      {trip.arrivalStation && (
+                        <span className="text-muted-foreground text-xs">({trip.arrivalStation})</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Dates and times */}
+                  <div className="space-y-2 text-sm">
+                    {trip.transportType === 'logement' ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Arrivée:</span>
+                          <span>{new Date(trip.departureDate).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                        {trip.returnDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Départ:</span>
+                            <span>{new Date(trip.returnDate).toLocaleDateString('fr-FR')}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : trip.transportType !== 'frais' && (
+                      <>
+                        {trip.departureTime && (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Départ:</span>
+                            <span>{trip.departureTime}</span>
+                          </div>
+                        )}
+                        {trip.arrivalTime && (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Arrivée:</span>
+                            <span>{trip.arrivalTime}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Distance and CO2 for transport types */}
+                  {trip.transportType !== 'logement' && trip.transportType !== 'frais' && trip.distanceKm > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                      {trip.distanceKm.toLocaleString('fr-FR')} km • {trip.co2Kg.toFixed(0)} kg CO₂
+                    </div>
+                  )}
+
+                  {/* Price if available */}
+                  {trip.price && (
+                    <div className="mt-2 text-sm font-medium text-primary">
+                      {trip.price.toLocaleString('fr-FR')} €
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm py-4 text-center">
+              Aucun déplacement ce jour
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 }
