@@ -32,7 +32,7 @@ export default function VoyagesList() {
   const handleAddTrip = (e: React.MouseEvent, voyageId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/add?voyageId=${voyageId}`);
+    navigate(`/add-single?voyageId=${voyageId}`);
   };
 
   return (

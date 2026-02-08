@@ -30,7 +30,7 @@ export function BottomNav() {
 
   const handleAddTrip = (voyageId: string) => {
     setShowMenu(false);
-    navigate(`/add?voyageId=${voyageId}`);
+    navigate(`/add-single?voyageId=${voyageId}`);
   };
 
   return (
