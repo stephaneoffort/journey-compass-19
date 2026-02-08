@@ -1,5 +1,6 @@
+import { forwardRef } from 'react';
 import { TransportType, transportLabels, transportEmoji } from '@/types/trip';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 interface TransportChartProps {
   data: Record<TransportType, number>;
@@ -16,58 +17,62 @@ const transportColors: Record<TransportType, string> = {
   frais: 'hsl(210, 14%, 53%)',
 };
 
-export function TransportChart({ data }: TransportChartProps) {
-  const chartData = Object.entries(data)
-    .filter(([_, value]) => value > 0)
-    .map(([type, value]) => ({
-      name: transportLabels[type as TransportType],
-      value,
-      emoji: transportEmoji[type as TransportType],
-      color: transportColors[type as TransportType],
-    }));
+export const TransportChart = forwardRef<HTMLDivElement, TransportChartProps>(
+  ({ data }, ref) => {
+    const chartData = Object.entries(data)
+      .filter(([_, value]) => value > 0)
+      .map(([type, value]) => ({
+        name: transportLabels[type as TransportType],
+        value,
+        emoji: transportEmoji[type as TransportType],
+        color: transportColors[type as TransportType],
+      }));
 
-  if (chartData.length === 0) {
+    if (chartData.length === 0) {
+      return (
+        <div ref={ref} className="glass-card p-6">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">Répartition par transport</h3>
+          <div className="h-40 flex items-center justify-center text-muted-foreground">
+            Aucune donnée
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="glass-card p-6">
+      <div ref={ref} className="glass-card p-6">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">Répartition par transport</h3>
-        <div className="h-40 flex items-center justify-center text-muted-foreground">
-          Aucune donnée
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={40}
+                outerRadius={70}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3 mt-4">
+          {chartData.map((entry) => (
+            <div key={entry.name} className="flex items-center gap-1.5 text-xs">
+              <span>{entry.emoji}</span>
+              <span className="text-muted-foreground">{entry.name}</span>
+              <span className="font-medium">{entry.value}</span>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
+);
 
-  return (
-    <div className="glass-card p-6">
-      <h3 className="text-sm font-medium text-muted-foreground mb-4">Répartition par transport</h3>
-      <div className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={40}
-              outerRadius={70}
-              paddingAngle={3}
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="flex flex-wrap justify-center gap-3 mt-4">
-        {chartData.map((entry) => (
-          <div key={entry.name} className="flex items-center gap-1.5 text-xs">
-            <span>{entry.emoji}</span>
-            <span className="text-muted-foreground">{entry.name}</span>
-            <span className="font-medium">{entry.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+TransportChart.displayName = 'TransportChart';
