@@ -48,53 +48,21 @@ export default function Auth() {
         localStorage.removeItem('supabase.auth.token');
       }
 
-      // Detect if we're on a published domain (not preview)
-      // The auth-bridge (/~oauth/initiate) only exists on preview domains
-      const isPublishedDomain = 
-        !window.location.hostname.includes('lovableproject.com') &&
-        !window.location.hostname.includes('localhost');
+      // Always use Lovable managed OAuth flow - it handles credentials automatically
+      const { error } = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: `${window.location.origin}/auth/callback`,
+        extraParams: {
+          prompt: 'select_account',
+        },
+      });
 
-      if (isPublishedDomain) {
-        // For published domains, bypass the auth-bridge by using Supabase directly
-        const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            skipBrowserRedirect: true,
-            queryParams: {
-              prompt: 'select_account',
-            },
-          },
+      if (error) {
+        toast({
+          title: 'Erreur',
+          description: error.message,
+          variant: 'destructive',
         });
-
-        if (error) throw error;
-
-        // Validate and redirect to OAuth URL
-        if (oauthData?.url) {
-          const oauthUrl = new URL(oauthData.url);
-          const allowedHosts = ['accounts.google.com', 'fqjbzcyuswepwpvoyabn.supabase.co'];
-          if (!allowedHosts.some(host => oauthUrl.hostname.includes(host))) {
-            throw new Error('URL de redirection OAuth invalide');
-          }
-          window.location.href = oauthData.url;
-        }
-      } else {
-        // For preview domains, use Lovable managed OAuth flow
-        const { error } = await lovable.auth.signInWithOAuth('google', {
-          redirect_uri: `${window.location.origin}/auth/callback`,
-          extraParams: {
-            prompt: 'select_account',
-          },
-        });
-
-        if (error) {
-          toast({
-            title: 'Erreur',
-            description: error.message,
-            variant: 'destructive',
-          });
-          setGoogleLoading(false);
-        }
+        setGoogleLoading(false);
       }
     } catch (e) {
       toast({
@@ -110,45 +78,18 @@ export default function Auth() {
     setAppleLoading(true);
 
     try {
-      // Detect if we're on a published domain
-      const isPublishedDomain = 
-        !window.location.hostname.includes('lovableproject.com') &&
-        !window.location.hostname.includes('localhost');
+      // Always use Lovable managed OAuth flow
+      const { error } = await lovable.auth.signInWithOAuth('apple', {
+        redirect_uri: `${window.location.origin}/auth/callback`,
+      });
 
-      if (isPublishedDomain) {
-        // For published domains, bypass the auth-bridge
-        const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            skipBrowserRedirect: true,
-          },
+      if (error) {
+        toast({
+          title: 'Erreur',
+          description: error.message,
+          variant: 'destructive',
         });
-
-        if (error) throw error;
-
-        if (oauthData?.url) {
-          const oauthUrl = new URL(oauthData.url);
-          const allowedHosts = ['appleid.apple.com', 'fqjbzcyuswepwpvoyabn.supabase.co'];
-          if (!allowedHosts.some(host => oauthUrl.hostname.includes(host))) {
-            throw new Error('URL de redirection OAuth invalide');
-          }
-          window.location.href = oauthData.url;
-        }
-      } else {
-        // For preview domains, use Lovable managed OAuth flow
-        const { error } = await lovable.auth.signInWithOAuth('apple', {
-          redirect_uri: `${window.location.origin}/auth/callback`,
-        });
-
-        if (error) {
-          toast({
-            title: 'Erreur',
-            description: error.message,
-            variant: 'destructive',
-          });
-          setAppleLoading(false);
-        }
+        setAppleLoading(false);
       }
     } catch (e) {
       toast({
