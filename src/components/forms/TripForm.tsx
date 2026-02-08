@@ -3,6 +3,7 @@ import { CityAutocomplete } from './CityAutocomplete';
 import { StationAutocomplete } from './StationAutocomplete';
 import { TrainStationSelect } from './TrainStationSelect';
 import { BusStationSelect } from './BusStationSelect';
+import { MetroStationSelect, isCityWithMetro } from './MetroStationSelect';
 import { StopoverInput } from './StopoverInput';
 import { TransportOptions } from './TransportOptions';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
@@ -78,6 +79,10 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
   // Bus stations (for French bus trips)
   const [departureBusStation, setDepartureBusStation] = useState<string | null>(null);
   const [arrivalBusStation, setArrivalBusStation] = useState<string | null>(null);
+  
+  // Metro stations (for Paris/London metro trips with city selection)
+  const [departureMetroStation, setDepartureMetroStation] = useState<string | null>(null);
+  const [arrivalMetroStation, setArrivalMetroStation] = useState<string | null>(null);
   
   // Dates & Times
   const [departureDate, setDepartureDate] = useState('');
@@ -175,8 +180,17 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
     const newErrors: typeof errors = {};
     
     if (isMetroInParis) {
-      if (!departureStation) newErrors.departure = 'Station de départ requise';
-      if (!arrivalStation) newErrors.arrival = 'Station d\'arrivée requise';
+      // Metro mode: need city + station
+      if (!departure) newErrors.departure = 'Ville de départ requise';
+      if (!arrival) newErrors.arrival = 'Ville d\'arrivée requise';
+      
+      // Check if cities support metro and require station selection
+      if (departure && isCityWithMetro(departure.city, departure.country) && !departureMetroStation && !departureStation) {
+        newErrors.departure = 'Station de départ requise';
+      }
+      if (arrival && isCityWithMetro(arrival.city, arrival.country) && !arrivalMetroStation && !arrivalStation) {
+        newErrors.arrival = 'Station d\'arrivée requise';
+      }
     } else {
       if (!departure) newErrors.departure = 'Ville de départ requise';
       if (!arrival) newErrors.arrival = 'Ville d\'arrivée requise';
@@ -192,7 +206,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       return;
     }
 
-    // For metro, set a default distance based on Paris metro (average ~5km per trip)
+    // For metro, set a default distance based on metro (average ~5km per trip)
     let finalDistance = distanceKm ? parseInt(distanceKm) : 0;
     if (isMetroInParis && !distanceKm) {
       finalDistance = 5; // Default metro distance
@@ -201,13 +215,16 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       return;
     }
 
-    // Prepare city data from stations for metro
-    const depCity = isMetroInParis ? departureStation!.name : departure!.city;
-    const depCountry = isMetroInParis ? 'FR' : (departure!.country || 'XX');
-    const depCountryName = isMetroInParis ? 'France' : (departure!.countryName || departure!.city);
-    const arrCity = isMetroInParis ? arrivalStation!.name : arrival!.city;
-    const arrCountry = isMetroInParis ? 'FR' : (arrival!.country || 'XX');
-    const arrCountryName = isMetroInParis ? 'France' : (arrival!.countryName || arrival!.city);
+    // Prepare city data - for metro use station name if selected
+    const depStationName = departureMetroStation || departureStation?.name;
+    const arrStationName = arrivalMetroStation || arrivalStation?.name;
+    
+    const depCity = isMetroInParis && depStationName ? depStationName : departure!.city;
+    const depCountry = departure!.country || 'XX';
+    const depCountryName = departure!.countryName || departure!.city;
+    const arrCity = isMetroInParis && arrStationName ? arrStationName : arrival!.city;
+    const arrCountry = arrival!.country || 'XX';
+    const arrCountryName = arrival!.countryName || arrival!.city;
 
     await onSubmit({
       departureCity: depCity,
@@ -409,40 +426,96 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       <div className="glass-card p-4 space-y-4">
         {isMetroInParis ? (
           <>
-            {/* Metro stations for Paris */}
+            {/* Metro mode: first select cities, then stations */}
             <div className="text-xs text-primary bg-primary/10 px-3 py-2 rounded-lg mb-2">
-              🚇 Sélectionnez les stations de métro/RER Paris & Île-de-France
+              🚇 Sélectionnez les villes puis les stations de métro (Paris ou Londres)
             </div>
             
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Station de départ</Label>
-              <StationAutocomplete
-                value={departureStation}
-                onChange={setDepartureStation}
-                placeholder="Rechercher une station..."
+              <Label className="text-muted-foreground">Ville de départ</Label>
+              <CityAutocomplete
+                value={departure}
+                onChange={(city) => {
+                  setDeparture(city);
+                  setDepartureMetroStation(null);
+                  setDepartureStation(null);
+                }}
+                placeholder="Paris, Londres..."
               />
               {errors.departure && <p className="text-xs text-destructive">{errors.departure}</p>}
+              
+              {/* Metro station selector if city supports it */}
+              {departure && isCityWithMetro(departure.city, departure.country) && (
+                <MetroStationSelect
+                  city={isCityWithMetro(departure.city, departure.country)!}
+                  value={departureMetroStation}
+                  onChange={setDepartureMetroStation}
+                  label="Station de départ"
+                />
+              )}
+              
+              {/* Fallback: use Paris station selector if Paris area detected */}
+              {departure && departure.city.toLowerCase() === 'paris' && departure.country === 'FR' && !departureMetroStation && (
+                <div className="text-xs text-muted-foreground">
+                  Ou rechercher directement :
+                  <div className="mt-2">
+                    <StationAutocomplete
+                      value={departureStation}
+                      onChange={setDepartureStation}
+                      placeholder="Rechercher une station..."
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
-            {departureStation && arrivalStation && (
+            {(departureMetroStation || departureStation) && (arrivalMetroStation || arrivalStation) && (
               <div className="flex justify-center py-2">
                 <div className="flex items-center gap-2 text-sm">
                   <span>🚇</span>
-                  <span>{departureStation.name}</span>
+                  <span>{departureMetroStation || departureStation?.name}</span>
                   <ArrowRight className="w-4 h-4 text-primary" />
-                  <span>{arrivalStation.name}</span>
+                  <span>{arrivalMetroStation || arrivalStation?.name}</span>
                 </div>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Station d'arrivée</Label>
-              <StationAutocomplete
-                value={arrivalStation}
-                onChange={setArrivalStation}
-                placeholder="Rechercher une station..."
+              <Label className="text-muted-foreground">Ville d'arrivée</Label>
+              <CityAutocomplete
+                value={arrival}
+                onChange={(city) => {
+                  setArrival(city);
+                  setArrivalMetroStation(null);
+                  setArrivalStation(null);
+                }}
+                placeholder="Paris, Londres..."
               />
               {errors.arrival && <p className="text-xs text-destructive">{errors.arrival}</p>}
+              
+              {/* Metro station selector if city supports it */}
+              {arrival && isCityWithMetro(arrival.city, arrival.country) && (
+                <MetroStationSelect
+                  city={isCityWithMetro(arrival.city, arrival.country)!}
+                  value={arrivalMetroStation}
+                  onChange={setArrivalMetroStation}
+                  label="Station d'arrivée"
+                />
+              )}
+              
+              {/* Fallback: use Paris station selector if Paris area detected */}
+              {arrival && arrival.city.toLowerCase() === 'paris' && arrival.country === 'FR' && !arrivalMetroStation && (
+                <div className="text-xs text-muted-foreground">
+                  Ou rechercher directement :
+                  <div className="mt-2">
+                    <StationAutocomplete
+                      value={arrivalStation}
+                      onChange={setArrivalStation}
+                      placeholder="Rechercher une station..."
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -456,6 +529,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                   setDeparture(city);
                   setDepartureTrainStation(null);
                   setDepartureBusStation(null);
+                  setDepartureMetroStation(null);
                 }}
                 placeholder="Ville de départ"
               />
