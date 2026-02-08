@@ -9,7 +9,7 @@ import { TrainStationSelect } from '@/components/forms/TrainStationSelect';
 import { BusStationSelect } from '@/components/forms/BusStationSelect';
 import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroStationSelect';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
-import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
+import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +19,7 @@ import { ArrowLeft, ArrowRight, Calendar, Clock, Save, Loader2, Route } from 'lu
 import { calculateRouteDistance } from '@/utils/distance';
 import { useToast } from '@/hooks/use-toast';
 
-const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro'];
+const transportTypes: TransportType[] = ['plane', 'train', 'car', 'bus', 'boat', 'metro', 'logement'];
 
 export default function EditTrip() {
   const { id } = useParams();
@@ -33,6 +33,7 @@ export default function EditTrip() {
   const [transportType, setTransportType] = useState<TransportType>('train');
   const [company, setCompany] = useState('');
   const [carType, setCarType] = useState<CarType | ''>('');
+  const [accommodationType, setAccommodationType] = useState<AccommodationType | ''>('');
   const [ticketNumber, setTicketNumber] = useState('');
   const [seatNumber, setSeatNumber] = useState('');
   const [bookingStatus, setBookingStatus] = useState<BookingStatus>('recherche');
@@ -74,6 +75,7 @@ export default function EditTrip() {
       setTransportType(trip.transportType);
       setCompany(trip.company || '');
       setCarType(trip.carType || '');
+      setAccommodationType(trip.accommodationType || '');
       setTicketNumber(trip.ticketNumber || '');
       setSeatNumber(trip.seatNumber || '');
       setBookingStatus(trip.bookingStatus);
@@ -176,6 +178,7 @@ export default function EditTrip() {
     setTransportType(type);
     setCompany('');
     setCarType('');
+    setAccommodationType('');
     setTicketNumber('');
     setSeatNumber('');
     // Reset station selections when transport type changes
@@ -244,6 +247,7 @@ export default function EditTrip() {
         transportType,
         company: company || undefined,
         carType: carType || undefined,
+        accommodationType: accommodationType || undefined,
         ticketNumber: ticketNumber || undefined,
         seatNumber: seatNumber || undefined,
         bookingStatus,
@@ -342,6 +346,8 @@ export default function EditTrip() {
             setCompany={setCompany}
             carType={carType}
             setCarType={setCarType}
+            accommodationType={accommodationType}
+            setAccommodationType={setAccommodationType}
             ticketNumber={ticketNumber}
             setTicketNumber={setTicketNumber}
             seatNumber={seatNumber}
@@ -493,11 +499,13 @@ export default function EditTrip() {
           <StopoverInput stopovers={stopovers} onChange={setStopovers} />
         </div>
 
-        {/* Dates & Times */}
+        {/* Dates & Times - Hide times for logement */}
         <div className="glass-card p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Date de départ</Label>
+              <Label className="text-muted-foreground">
+                {transportType === 'logement' ? 'Date d\'arrivée' : 'Date de départ'}
+              </Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -509,46 +517,64 @@ export default function EditTrip() {
               </div>
               {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
             </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Heure de départ</Label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="time"
-                  value={departureTime}
-                  onChange={(e) => setDepartureTime(e.target.value)}
-                  className="input-glass pl-10"
-                />
+            {transportType !== 'logement' && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Heure de départ</Label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="time"
+                    value={departureTime}
+                    onChange={(e) => setDepartureTime(e.target.value)}
+                    className="input-glass pl-10"
+                  />
+                </div>
               </div>
-            </div>
+            )}
+            {transportType === 'logement' && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Date de départ</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    className="input-glass pl-10"
+                  />
+                </div>
+              </div>
+            )}
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Date retour (opt.)</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="date"
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  className="input-glass pl-10"
-                />
+          {transportType !== 'logement' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Date retour (opt.)</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    className="input-glass pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Heure arrivée</Label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="time"
+                    value={arrivalTime}
+                    onChange={(e) => setArrivalTime(e.target.value)}
+                    className="input-glass pl-10"
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Heure arrivée</Label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="time"
-                  value={arrivalTime}
-                  onChange={(e) => setArrivalTime(e.target.value)}
-                  className="input-glass pl-10"
-                />
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Distance & CO2 */}

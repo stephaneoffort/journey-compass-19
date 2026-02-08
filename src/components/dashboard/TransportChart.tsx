@@ -12,6 +12,7 @@ const transportColors: Record<TransportType, string> = {
   bus: 'hsl(271, 81%, 56%)',
   boat: 'hsl(186, 78%, 46%)',
   metro: 'hsl(340, 82%, 52%)',
+  logement: 'hsl(45, 93%, 47%)',
 };
 
 export function TransportChart({ data }: TransportChartProps) {

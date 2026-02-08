@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Trip, TransportType, TripStatus, Location, BookingStatus, CarType, co2PerKm } from '@/types/trip';
+import { Trip, TransportType, TripStatus, Location, BookingStatus, CarType, AccommodationType, co2PerKm } from '@/types/trip';
 import { useAuth } from './useAuth';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -20,6 +20,7 @@ interface TripInsert {
   transportType: TransportType;
   company?: string;
   carType?: CarType;
+  accommodationType?: AccommodationType;
   ticketNumber?: string;
   seatNumber?: string;
   bookingStatus?: BookingStatus;
@@ -49,6 +50,7 @@ function mapDbToTrip(row: any): Trip {
     transportType: row.transport_type as TransportType,
     company: row.company,
     carType: row.car_type as CarType | undefined,
+    accommodationType: row.accommodation_type as AccommodationType | undefined,
     ticketNumber: row.ticket_number,
     seatNumber: row.seat_number,
     bookingStatus: (row.booking_status as BookingStatus) || 'recherche',
@@ -135,6 +137,7 @@ export function useCreateTrip() {
           transport_type: trip.transportType,
           company: trip.company || null,
           car_type: trip.carType || null,
+          accommodation_type: trip.accommodationType || null,
           ticket_number: trip.ticketNumber || null,
           seat_number: trip.seatNumber || null,
           booking_status: trip.bookingStatus || 'recherche',
@@ -188,6 +191,7 @@ export function useUpdateTrip() {
       }
       if (updates.company !== undefined) updateData.company = updates.company;
       if (updates.carType !== undefined) updateData.car_type = updates.carType;
+      if (updates.accommodationType !== undefined) updateData.accommodation_type = updates.accommodationType;
       if (updates.ticketNumber !== undefined) updateData.ticket_number = updates.ticketNumber;
       if (updates.seatNumber !== undefined) updateData.seat_number = updates.seatNumber;
       if (updates.bookingStatus) updateData.booking_status = updates.bookingStatus;

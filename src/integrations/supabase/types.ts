@@ -117,6 +117,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          accommodation_type: string | null
           arrival_city: string
           arrival_country: string
           arrival_country_name: string
@@ -148,6 +149,7 @@ export type Database = {
           voyage_id: string | null
         }
         Insert: {
+          accommodation_type?: string | null
           arrival_city: string
           arrival_country: string
           arrival_country_name: string
@@ -179,6 +181,7 @@ export type Database = {
           voyage_id?: string | null
         }
         Update: {
+          accommodation_type?: string | null
           arrival_city?: string
           arrival_country?: string
           arrival_country_name?: string

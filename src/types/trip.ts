@@ -1,7 +1,8 @@
-export type TransportType = 'plane' | 'train' | 'car' | 'bus' | 'boat' | 'metro';
+export type TransportType = 'plane' | 'train' | 'car' | 'bus' | 'boat' | 'metro' | 'logement';
 export type TripStatus = 'completed' | 'planned' | 'cancelled';
 export type BookingStatus = 'recherche' | 'trouve' | 'achete';
 export type CarType = 'taxi' | 'uber' | 'bolt' | 'blablacar' | 'personnel';
+export type AccommodationType = 'hotel' | 'airbnb';
 
 export const transportLabels: Record<TransportType, string> = {
   plane: 'Avion',
@@ -10,6 +11,7 @@ export const transportLabels: Record<TransportType, string> = {
   bus: 'Bus',
   boat: 'Bateau',
   metro: 'Métro',
+  logement: 'Logement',
 };
 
 export const transportEmoji: Record<TransportType, string> = {
@@ -19,6 +21,7 @@ export const transportEmoji: Record<TransportType, string> = {
   bus: '🚌',
   boat: '🚢',
   metro: '🚇',
+  logement: '🏨',
 };
 
 export const bookingStatusLabels: Record<BookingStatus, string> = {
@@ -41,6 +44,11 @@ export const carTypeLabels: Record<CarType, string> = {
   personnel: 'Véhicule personnel',
 };
 
+export const accommodationTypeLabels: Record<AccommodationType, string> = {
+  hotel: 'Hôtel',
+  airbnb: 'Airbnb',
+};
+
 // CO2 emissions in kg per km
 export const co2PerKm: Record<TransportType, number> = {
   plane: 0.255,
@@ -49,6 +57,7 @@ export const co2PerKm: Record<TransportType, number> = {
   bus: 0.089,
   boat: 0.245,
   metro: 0.008,
+  logement: 0, // No CO2 for accommodation
 };
 
 export interface Location {
@@ -76,6 +85,7 @@ export interface Trip {
   transportType: TransportType;
   company?: string;
   carType?: CarType;
+  accommodationType?: AccommodationType;
   ticketNumber?: string;
   seatNumber?: string;
   bookingStatus: BookingStatus;
