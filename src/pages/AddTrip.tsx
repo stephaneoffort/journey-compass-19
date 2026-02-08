@@ -289,6 +289,67 @@ export default function AddTrip() {
       return;
     }
 
+    // Logement: only need location (departure synced to arrival) and dates
+    if (transportType === 'logement') {
+      if (!departure || !departureDate) {
+        toast({
+          title: 'Champs requis',
+          description: 'Veuillez remplir le lieu d\'hébergement et la date d\'arrivée.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Price is required when booking status is 'trouve' or 'achete'
+      if ((bookingStatus === 'trouve' || bookingStatus === 'achete') && !price) {
+        toast({
+          title: 'Prix requis',
+          description: 'Veuillez saisir le prix du logement.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      try {
+        await createTrip.mutateAsync({
+          voyageId: voyageId || undefined,
+          departureCity: departure.city,
+          departureCountry: departure.country || 'XX',
+          departureCountryName: departure.countryName || departure.city,
+          arrivalCity: departure.city,
+          arrivalCountry: departure.country || 'XX',
+          arrivalCountryName: departure.countryName || departure.city,
+          via: [],
+          departureDate,
+          returnDate: returnDate || undefined,
+          transportType,
+          accommodationType: accommodationType || undefined,
+          bookingStatus,
+          price: price ? parseFloat(price) : undefined,
+          distanceKm: 0,
+          notes: notes || undefined,
+        });
+
+        toast({
+          title: 'Logement enregistré ! 🎉',
+          description: `${accommodationType === 'hotel' ? '🏨' : '🏠'} ${departure.city}`,
+        });
+
+        if (voyageId) {
+          navigate(`/voyages/${voyageId}`);
+        } else {
+          navigate('/trips');
+        }
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur est survenue lors de l\'enregistrement.',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+
     // Frais divers: only date required, city is optional
     if (transportType === 'frais') {
       if (!departureDate) {
