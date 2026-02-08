@@ -8,6 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, ArrowRight, Loader2, Apple } from 'lucide-react';
 import { z } from 'zod';
 import { lovable } from '@/integrations/lovable';
+import { supabase } from '@/integrations/supabase/client';
+
 const authSchema = z.object({
   email: z.string().email('Email invalide'),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
@@ -40,6 +42,14 @@ export default function Auth() {
     setGoogleLoading(true);
 
     try {
+      // Clear any stale session state before initiating new OAuth flow
+      // This helps prevent 404 errors after logout
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        // Force clear local storage auth state to ensure clean slate
+        localStorage.removeItem('supabase.auth.token');
+      }
+
       // Use Lovable managed OAuth flow (handles secrets automatically)
       const { error } = await lovable.auth.signInWithOAuth('google', {
         redirect_uri: `${window.location.origin}/auth/callback`,
