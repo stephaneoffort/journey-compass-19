@@ -48,7 +48,38 @@ export default function Auth() {
         localStorage.removeItem('supabase.auth.token');
       }
 
-      // Always use Lovable managed OAuth flow - it handles credentials automatically
+      // In production (published domain), bypass the Lovable OAuth broker
+      // because /~oauth/initiate is preview-only and can 404 on published domains.
+      const isPublishedDomain = window.location.hostname.endsWith('lovable.app');
+
+      if (isPublishedDomain) {
+        const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            skipBrowserRedirect: true,
+            queryParams: {
+              prompt: 'select_account',
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (oauthData?.url) {
+          const oauthUrl = new URL(oauthData.url);
+          const allowedHosts = ['accounts.google.com'];
+          if (!allowedHosts.some(host => oauthUrl.hostname === host)) {
+            throw new Error('URL de redirection OAuth invalide');
+          }
+          window.location.href = oauthData.url;
+          return;
+        }
+
+        throw new Error('URL OAuth manquante');
+      }
+
+      // In preview domains, use Lovable managed OAuth flow
       const { error } = await lovable.auth.signInWithOAuth('google', {
         redirect_uri: `${window.location.origin}/auth/callback`,
         extraParams: {
@@ -78,7 +109,32 @@ export default function Auth() {
     setAppleLoading(true);
 
     try {
-      // Always use Lovable managed OAuth flow
+      const isPublishedDomain = window.location.hostname.endsWith('lovable.app');
+
+      if (isPublishedDomain) {
+        const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            skipBrowserRedirect: true,
+          },
+        });
+
+        if (error) throw error;
+
+        if (oauthData?.url) {
+          const oauthUrl = new URL(oauthData.url);
+          const allowedHosts = ['appleid.apple.com'];
+          if (!allowedHosts.some(host => oauthUrl.hostname === host)) {
+            throw new Error('URL de redirection OAuth invalide');
+          }
+          window.location.href = oauthData.url;
+          return;
+        }
+
+        throw new Error('URL OAuth manquante');
+      }
+
       const { error } = await lovable.auth.signInWithOAuth('apple', {
         redirect_uri: `${window.location.origin}/auth/callback`,
       });
