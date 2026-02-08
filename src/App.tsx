@@ -16,6 +16,7 @@ import MapView from "./pages/MapView";
 import TripDetail from "./pages/TripDetail";
 import EditTrip from "./pages/EditTrip";
 import Auth from "./pages/Auth";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/install" element={<Install />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/trips" element={<ProtectedRoute><TripsList /></ProtectedRoute>} />
               <Route path="/trips/:id" element={<ProtectedRoute><TripDetail /></ProtectedRoute>} />

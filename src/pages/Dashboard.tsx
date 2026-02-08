@@ -8,6 +8,7 @@ import { TransportType } from '@/types/trip';
 import { Plane, Route, Leaf, TrendingUp, LogOut, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { InstallBanner } from '@/components/pwa/InstallBanner';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -37,6 +38,7 @@ export default function Dashboard() {
 
   return (
     <PageLayout>
+      <InstallBanner />
       <div className="page-header safe-top">
         <div className="flex items-center justify-between">
           <div>
