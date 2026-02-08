@@ -43,30 +43,34 @@ export function TransportOptions({
   const companyOptions = transportType === 'plane' ? airlines : busCompanies;
   const companyLabel = transportType === 'plane' ? 'Compagnie aérienne' : 'Compagnie de bus';
 
+  const showBookingStatus = transportType !== 'frais';
+
   return (
     <div className="space-y-4">
       {/* Booking Status */}
-      <div className="space-y-2">
-        <Label className="text-muted-foreground">Statut de réservation</Label>
-        <div className="grid grid-cols-3 gap-2">
-          {(Object.keys(bookingStatusLabels) as BookingStatus[]).map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setBookingStatus(status)}
-              className={cn(
-                'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium',
-                bookingStatus === status
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span>{bookingStatusEmoji[status]}</span>
-              <span>{bookingStatusLabels[status]}</span>
-            </button>
-          ))}
+      {showBookingStatus && (
+        <div className="space-y-2">
+          <Label className="text-muted-foreground">Statut de réservation</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.keys(bookingStatusLabels) as BookingStatus[]).map((status) => (
+              <button
+                key={status}
+                type="button"
+                onClick={() => setBookingStatus(status)}
+                className={cn(
+                  'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium',
+                  bookingStatus === status
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span>{bookingStatusEmoji[status]}</span>
+                <span>{bookingStatusLabels[status]}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Company Select (Plane/Bus) */}
       {showCompanySelect && (
