@@ -1,26 +1,21 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrip, useDeleteTrip, useUpdateTrip } from '@/hooks/useTrips';
-import { useInvoices, useUploadInvoice, useDeleteInvoice } from '@/hooks/useInvoices';
 import { transportEmoji, transportLabels, getFlag } from '@/types/trip';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Route, Leaf, FileText, Upload, Trash2, Edit, Loader2, X, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Route, Leaf, FileText, Trash2, Edit, Loader2, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useRef } from 'react';
+import { InvoiceUpload } from '@/components/invoices/InvoiceUpload';
 
 export default function TripDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { data: trip, isLoading } = useTrip(id || '');
-  const { data: invoices = [], isLoading: invoicesLoading } = useInvoices(id || '');
   const deleteTrip = useDeleteTrip();
   const updateTrip = useUpdateTrip();
-  const uploadInvoice = useUploadInvoice();
-  const deleteInvoice = useDeleteInvoice();
 
   if (isLoading) {
     return (
@@ -75,29 +70,6 @@ export default function TripDetail() {
       });
     } catch {
       toast({ title: 'Erreur', variant: 'destructive' });
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      await uploadInvoice.mutateAsync({ tripId: trip.id, file });
-      toast({ title: 'Justificatif ajouté !' });
-    } catch {
-      toast({ title: 'Erreur lors de l\'upload', variant: 'destructive' });
-    }
-  };
-
-  const handleDeleteInvoice = async (invoiceId: string, filePath: string) => {
-    if (confirm('Supprimer ce justificatif ?')) {
-      try {
-        await deleteInvoice.mutateAsync({ id: invoiceId, filePath, tripId: trip.id });
-        toast({ title: 'Justificatif supprimé' });
-      } catch {
-        toast({ title: 'Erreur', variant: 'destructive' });
-      }
     }
   };
 
@@ -181,67 +153,7 @@ export default function TripDetail() {
 
         {/* Invoices */}
         <div className="glass-card p-4 animate-slide-up" style={{ animationDelay: '300ms' }}>
-          <h3 className="font-medium mb-4 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-muted-foreground" />
-            Justificatifs
-          </h3>
-          
-          {invoicesLoading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : invoices.length > 0 ? (
-            <div className="space-y-2 mb-4">
-              {invoices.map((invoice) => (
-                <div key={invoice.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  <a 
-                    href={invoice.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex-1 text-sm truncate hover:text-primary"
-                  >
-                    {invoice.fileName}
-                  </a>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteInvoice(invoice.id, invoice.filePath)}
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="text-center py-6 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors"
-          >
-            {uploadInvoice.isPending ? (
-              <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
-            ) : (
-              <>
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Cliquez pour ajouter un fichier
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  PDF, JPG ou PNG
-                </p>
-              </>
-            )}
-          </div>
+          <InvoiceUpload tripId={trip.id} />
         </div>
 
         {/* Actions */}
