@@ -2,16 +2,15 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { TransportChart } from '@/components/dashboard/TransportChart';
 import { TripCard } from '@/components/trips/TripCard';
+import { UserMenu } from '@/components/layout/UserMenu';
 import { useTrips } from '@/hooks/useTrips';
-import { useAuth } from '@/hooks/useAuth';
 import { TransportType } from '@/types/trip';
-import { Plane, Route, Leaf, TrendingUp, LogOut, Loader2 } from 'lucide-react';
+import { Plane, Route, Leaf, TrendingUp, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { InstallBanner } from '@/components/pwa/InstallBanner';
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth();
   const { data: trips = [], isLoading } = useTrips();
 
   const completedTrips = trips.filter(t => t.status === 'completed');
@@ -45,14 +44,7 @@ export default function Dashboard() {
             <h1 className="page-title">Tableau de bord</h1>
             <p className="page-subtitle">Suivi de vos déplacements professionnels</p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={signOut}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
+          <UserMenu />
         </div>
       </div>
 
