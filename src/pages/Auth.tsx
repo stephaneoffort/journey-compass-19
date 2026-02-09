@@ -48,35 +48,8 @@ export default function Auth() {
         localStorage.removeItem('supabase.auth.token');
       }
 
-      // Detect environment: published domain (.lovable.app) vs preview (.lovableproject.com)
-      const hostname = window.location.hostname;
-      const isPublishedDomain = hostname.endsWith('.lovable.app') && !hostname.includes('preview');
-      const isPreviewDomain = hostname.endsWith('.lovableproject.com') || hostname.includes('-preview--');
-
-      if (isPublishedDomain) {
-        // On published domain, use Supabase OAuth directly (requires manual OAuth credentials setup)
-        const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            skipBrowserRedirect: true,
-            queryParams: {
-              prompt: 'select_account',
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        if (oauthData?.url) {
-          window.location.href = oauthData.url;
-          return;
-        }
-
-        throw new Error('URL OAuth manquante');
-      }
-
-      // In preview domains, use Lovable managed OAuth flow
+      // Always use Lovable managed OAuth flow for all Lovable domains
+      // This handles both preview (.lovableproject.com) and published (.lovable.app) domains
       const { error } = await lovable.auth.signInWithOAuth('google', {
         redirect_uri: `${window.location.origin}/auth/callback`,
         extraParams: {
@@ -106,28 +79,7 @@ export default function Auth() {
     setAppleLoading(true);
 
     try {
-      const isPublishedDomain = window.location.hostname.endsWith('lovable.app');
-
-      if (isPublishedDomain) {
-        const { data: oauthData, error } = await supabase.auth.signInWithOAuth({
-          provider: 'apple',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            skipBrowserRedirect: true,
-          },
-        });
-
-        if (error) throw error;
-
-        if (oauthData?.url) {
-          // Supabase returns its own auth URL which then redirects to Apple
-          window.location.href = oauthData.url;
-          return;
-        }
-
-        throw new Error('URL OAuth manquante');
-      }
-
+      // Always use Lovable managed OAuth flow for all Lovable domains
       const { error } = await lovable.auth.signInWithOAuth('apple', {
         redirect_uri: `${window.location.origin}/auth/callback`,
       });
