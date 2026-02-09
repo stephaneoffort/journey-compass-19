@@ -176,47 +176,67 @@ export function useCreateTrip() {
 
 export function useUpdateTrip() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<TripInsert> & { id: string }) => {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       
-      if (updates.departureCity) updateData.departure_city = updates.departureCity;
-      if (updates.departureCountry) updateData.departure_country = updates.departureCountry;
-      if (updates.departureCountryName) updateData.departure_country_name = updates.departureCountryName;
-      if (updates.arrivalCity) updateData.arrival_city = updates.arrivalCity;
-      if (updates.arrivalCountry) updateData.arrival_country = updates.arrivalCountry;
-      if (updates.arrivalCountryName) updateData.arrival_country_name = updates.arrivalCountryName;
-      if (updates.via) updateData.via = updates.via;
-      if (updates.departureDate) updateData.departure_date = updates.departureDate;
-      if (updates.departureTime !== undefined) updateData.departure_time = updates.departureTime;
-      if (updates.returnDate !== undefined) updateData.return_date = updates.returnDate;
-      if (updates.arrivalTime !== undefined) updateData.arrival_time = updates.arrivalTime;
-      if (updates.transportType) {
+      // Required fields - always update if provided
+      if (updates.departureCity !== undefined) updateData.departure_city = updates.departureCity;
+      if (updates.departureCountry !== undefined) updateData.departure_country = updates.departureCountry;
+      if (updates.departureCountryName !== undefined) updateData.departure_country_name = updates.departureCountryName;
+      if (updates.arrivalCity !== undefined) updateData.arrival_city = updates.arrivalCity;
+      if (updates.arrivalCountry !== undefined) updateData.arrival_country = updates.arrivalCountry;
+      if (updates.arrivalCountryName !== undefined) updateData.arrival_country_name = updates.arrivalCountryName;
+      if (updates.via !== undefined) updateData.via = updates.via as unknown as Json;
+      if (updates.departureDate !== undefined) updateData.departure_date = updates.departureDate;
+      
+      // Optional time fields - allow null/empty
+      if (updates.departureTime !== undefined) updateData.departure_time = updates.departureTime || null;
+      if (updates.returnDate !== undefined) updateData.return_date = updates.returnDate || null;
+      if (updates.arrivalTime !== undefined) updateData.arrival_time = updates.arrivalTime || null;
+      
+      // Transport type and CO2 calculation
+      if (updates.transportType !== undefined) {
         updateData.transport_type = updates.transportType;
-        if (updates.distanceKm) {
-          updateData.co2_kg = updates.distanceKm * co2PerKm[updates.transportType];
-        }
       }
-      if (updates.company !== undefined) updateData.company = updates.company;
-      if (updates.carType !== undefined) updateData.car_type = updates.carType;
-      if (updates.accommodationType !== undefined) updateData.accommodation_type = updates.accommodationType;
-      if (updates.ticketNumber !== undefined) updateData.ticket_number = updates.ticketNumber;
-      if (updates.seatNumber !== undefined) updateData.seat_number = updates.seatNumber;
-      if (updates.bookingStatus) updateData.booking_status = updates.bookingStatus;
-      if (updates.distanceKm) {
+      
+      // Distance and CO2 - handle 0 as valid value
+      if (updates.distanceKm !== undefined) {
         updateData.distance_km = updates.distanceKm;
-        if (updates.transportType) {
-          updateData.co2_kg = updates.distanceKm * co2PerKm[updates.transportType];
-        }
+        const transportForCo2 = updates.transportType || 'car';
+        updateData.co2_kg = updates.distanceKm * co2PerKm[transportForCo2];
       }
-      if (updates.status) updateData.status = updates.status;
-      if (updates.notes !== undefined) updateData.notes = updates.notes;
-      if (updates.departureStation !== undefined) updateData.departure_station = updates.departureStation;
-      if (updates.arrivalStation !== undefined) updateData.arrival_station = updates.arrivalStation;
-      if (updates.tollExpense !== undefined) updateData.toll_expense = updates.tollExpense;
-      if (updates.parkingExpense !== undefined) updateData.parking_expense = updates.parkingExpense;
-      if (updates.otherExpense !== undefined) updateData.other_expense = updates.otherExpense;
+      
+      // Optional string fields - allow empty strings to clear values
+      if (updates.company !== undefined) updateData.company = updates.company || null;
+      if (updates.carType !== undefined) updateData.car_type = updates.carType || null;
+      if (updates.accommodationType !== undefined) updateData.accommodation_type = updates.accommodationType || null;
+      if (updates.ticketNumber !== undefined) updateData.ticket_number = updates.ticketNumber || null;
+      if (updates.seatNumber !== undefined) updateData.seat_number = updates.seatNumber || null;
+      if (updates.notes !== undefined) updateData.notes = updates.notes || null;
+      if (updates.departureStation !== undefined) updateData.departure_station = updates.departureStation || null;
+      if (updates.arrivalStation !== undefined) updateData.arrival_station = updates.arrivalStation || null;
+      
+      // Booking status
+      if (updates.bookingStatus !== undefined) updateData.booking_status = updates.bookingStatus;
+      
+      // Status
+      if (updates.status !== undefined) updateData.status = updates.status;
+      
+      // Price - allow 0 and undefined to clear
+      if (updates.price !== undefined) updateData.price = updates.price ?? null;
+      
+      // Car expenses - allow 0 and undefined to clear
+      if (updates.tollExpense !== undefined) updateData.toll_expense = updates.tollExpense ?? null;
+      if (updates.parkingExpense !== undefined) updateData.parking_expense = updates.parkingExpense ?? null;
+      if (updates.otherExpense !== undefined) updateData.other_expense = updates.otherExpense ?? null;
+
+      // Only update if there are changes
+      if (Object.keys(updateData).length === 0) {
+        throw new Error('No updates provided');
+      }
 
       const { data, error } = await supabase
         .from('trips')
@@ -228,9 +248,14 @@ export function useUpdateTrip() {
       if (error) throw error;
       return mapDbToTrip(data);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      // Invalidate all related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       queryClient.invalidateQueries({ queryKey: ['trip', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['voyages'] });
+      if (data.voyageId) {
+        queryClient.invalidateQueries({ queryKey: ['voyage', data.voyageId] });
+      }
     },
   });
 }
