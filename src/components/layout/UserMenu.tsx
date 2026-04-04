@@ -20,6 +20,10 @@ export function UserMenu({ className }: { className?: string }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { roles, isAdmin } = useUserRole();
+
+  const roleLabel = isAdmin ? 'Administrateur' : roles.includes('manager') ? 'Manager' : roles.length > 0 ? 'Utilisateur' : null;
+  const roleColor = isAdmin ? 'bg-red-500/10 text-red-500 border-red-500/20' : roles.includes('manager') ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20';
 
   const handleSignOut = async () => {
     await signOut();
