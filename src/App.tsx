@@ -50,8 +50,9 @@ const App = () => {
       {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <ThemeProvider>
           <TooltipProvider>
-            <div className="dark">
+            <div>
               <Toaster />
               <Sonner />
               <BrowserRouter>
