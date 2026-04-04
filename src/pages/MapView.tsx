@@ -2,9 +2,11 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
 import { useVoyages } from '@/hooks/useVoyages';
 import { useCustomCities } from '@/hooks/useGeocodeCity';
-import { getFlag, transportEmoji } from '@/types/trip';
+import { getFlag, transportEmoji, TransportType } from '@/types/trip';
 import { Globe, MapPin, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { TripMap } from '@/components/map/TripMap';
+import { TransportFilter } from '@/components/trips/TransportFilter';
 import { TripMap } from '@/components/map/TripMap';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
