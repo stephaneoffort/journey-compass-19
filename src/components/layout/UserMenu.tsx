@@ -44,6 +44,7 @@ export function UserMenu({ className }: { className?: string }) {
 
   return (
     <DropdownMenu>
+      <div className={className}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 border-2 border-primary/20">
