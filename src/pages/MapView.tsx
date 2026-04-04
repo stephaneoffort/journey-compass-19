@@ -16,11 +16,14 @@ export default function MapView() {
   const { data: voyages = [] } = useVoyages();
   const { data: customCities = [] } = useCustomCities();
   const [selectedVoyageId, setSelectedVoyageId] = useState<string>('all');
+  const [selectedTransport, setSelectedTransport] = useState<TransportType | 'all'>('all');
 
   const filteredTrips = useMemo(() => {
-    if (selectedVoyageId === 'all') return trips;
-    return trips.filter(t => t.voyageId === selectedVoyageId);
-  }, [trips, selectedVoyageId]);
+    let result = trips;
+    if (selectedVoyageId !== 'all') result = result.filter(t => t.voyageId === selectedVoyageId);
+    if (selectedTransport !== 'all') result = result.filter(t => t.transportType === selectedTransport);
+    return result;
+  }, [trips, selectedVoyageId, selectedTransport]);
 
   const completedTrips = filteredTrips.filter(t => t.status === 'completed');
 
