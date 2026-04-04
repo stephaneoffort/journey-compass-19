@@ -133,7 +133,7 @@ export function BottomNav() {
 
       {/* Navigation bar */}
       <nav className="fixed bottom-0 left-0 right-0 glass-nav z-50">
-        <div className="flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)] max-w-2xl mx-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
