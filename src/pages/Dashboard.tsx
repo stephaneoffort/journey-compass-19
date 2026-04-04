@@ -45,7 +45,11 @@ export default function Dashboard() {
             <h1 className="page-title">Tableau de bord</h1>
             <p className="page-subtitle">Suivi de vos déplacements professionnels</p>
           </div>
-          <UserMenu className="lg:hidden" />
+          <div className="flex items-center gap-2">
+            <SendReportDialog />
+            <UserMenu className="lg:hidden" />
+          </div>
+        </div>
         </div>
       </div>
 
