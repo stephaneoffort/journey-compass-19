@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, User, Settings, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/button';
 export function UserMenu({ className }: { className?: string }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -76,6 +78,10 @@ export function UserMenu({ className }: { className?: string }) {
           <DropdownMenuItem className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
             <span>Paramètres</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            <span>{theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
