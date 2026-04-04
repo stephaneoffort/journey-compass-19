@@ -53,6 +53,17 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Parse optional body params
+    let recipientOverride: string | null = null;
+    let requestUserId: string | null = null;
+    try {
+      const body = await req.json();
+      recipientOverride = body?.recipientEmail || null;
+      requestUserId = body?.userId || null;
+    } catch {
+      // no body = cron mode
+    }
+
     // Calculate date range: previous month
     const now = new Date();
     const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
