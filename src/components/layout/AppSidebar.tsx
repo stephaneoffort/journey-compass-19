@@ -1,6 +1,7 @@
-import { Home, Briefcase, Plus, Calendar, Map, Plane, Sun, Moon } from 'lucide-react';
+import { Home, Briefcase, Plus, Calendar, Map, Plane, Sun, Moon, Shield } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
 import {
   Sidebar,
   SidebarContent,
@@ -31,8 +32,14 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { isAdmin } = useUserRole();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const allNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ title: 'Administration', url: '/admin/roles', icon: Shield }] : []),
+  ];
 
   return (
     <Sidebar collapsible="icon">
@@ -54,7 +61,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {allNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
