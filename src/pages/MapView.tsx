@@ -2,10 +2,11 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
 import { useVoyages } from '@/hooks/useVoyages';
 import { useCustomCities } from '@/hooks/useGeocodeCity';
-import { getFlag, transportEmoji } from '@/types/trip';
+import { getFlag, transportEmoji, TransportType } from '@/types/trip';
 import { Globe, MapPin, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { TripMap } from '@/components/map/TripMap';
+import { TransportFilter } from '@/components/trips/TransportFilter';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -15,11 +16,14 @@ export default function MapView() {
   const { data: voyages = [] } = useVoyages();
   const { data: customCities = [] } = useCustomCities();
   const [selectedVoyageId, setSelectedVoyageId] = useState<string>('all');
+  const [selectedTransport, setSelectedTransport] = useState<TransportType | 'all'>('all');
 
   const filteredTrips = useMemo(() => {
-    if (selectedVoyageId === 'all') return trips;
-    return trips.filter(t => t.voyageId === selectedVoyageId);
-  }, [trips, selectedVoyageId]);
+    let result = trips;
+    if (selectedVoyageId !== 'all') result = result.filter(t => t.voyageId === selectedVoyageId);
+    if (selectedTransport !== 'all') result = result.filter(t => t.transportType === selectedTransport);
+    return result;
+  }, [trips, selectedVoyageId, selectedTransport]);
 
   const completedTrips = filteredTrips.filter(t => t.status === 'completed');
 
@@ -80,6 +84,8 @@ export default function MapView() {
           )}
         </div>
       </div>
+
+      <TransportFilter selected={selectedTransport} onChange={setSelectedTransport} />
 
       <div className="px-5 space-y-6">
         {/* Stats */}
