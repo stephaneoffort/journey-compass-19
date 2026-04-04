@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 export function UserMenu({ className }: { className?: string }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
