@@ -45,7 +45,7 @@ export function BottomNav() {
           />
           
           {/* Menu content */}
-          <div className="absolute bottom-20 left-4 right-4 pb-[env(safe-area-inset-bottom)] animate-slide-up">
+          <div className="absolute bottom-20 left-4 right-4 max-w-2xl mx-auto pb-[env(safe-area-inset-bottom)] animate-slide-up">
             <div className="glass-card p-4 space-y-3">
               {/* Header */}
               <div className="flex items-center justify-between mb-2">
@@ -133,7 +133,7 @@ export function BottomNav() {
 
       {/* Navigation bar */}
       <nav className="fixed bottom-0 left-0 right-0 glass-nav z-50">
-        <div className="flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)] max-w-2xl mx-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;

@@ -8,7 +8,7 @@ interface PageLayoutProps {
 export function PageLayout({ children }: PageLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <main className="safe-bottom">
+      <main className="safe-bottom max-w-2xl mx-auto w-full">
         {children}
       </main>
       <BottomNav />

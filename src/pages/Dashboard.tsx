@@ -55,7 +55,7 @@ export default function Dashboard() {
       ) : (
         <>
           {/* KPIs */}
-          <div className="grid grid-cols-2 gap-3 px-5 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-5 mb-6">
             <KPICard
               icon={<Plane className="w-6 h-6 text-transport-plane" />}
               label="Trajets"
