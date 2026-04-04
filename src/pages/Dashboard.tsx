@@ -1,6 +1,7 @@
 import { PageLayout } from '@/components/layout/PageLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { TransportChart } from '@/components/dashboard/TransportChart';
+import { SendReportDialog } from '@/components/dashboard/SendReportDialog';
 import { TripCard } from '@/components/trips/TripCard';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useTrips } from '@/hooks/useTrips';
@@ -44,7 +45,10 @@ export default function Dashboard() {
             <h1 className="page-title">Tableau de bord</h1>
             <p className="page-subtitle">Suivi de vos déplacements professionnels</p>
           </div>
-          <UserMenu className="lg:hidden" />
+          <div className="flex items-center gap-2">
+            <SendReportDialog />
+            <UserMenu className="lg:hidden" />
+          </div>
         </div>
       </div>
 

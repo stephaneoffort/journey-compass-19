@@ -53,6 +53,17 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Parse optional body params
+    let recipientOverride: string | null = null;
+    let requestUserId: string | null = null;
+    try {
+      const body = await req.json();
+      recipientOverride = body?.recipientEmail || null;
+      requestUserId = body?.userId || null;
+    } catch {
+      // no body = cron mode
+    }
+
     // Calculate date range: previous month
     const now = new Date();
     const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -65,16 +76,33 @@ serve(async (req: Request) => {
       year: "numeric",
     });
 
-    // Get all users with profiles
-    const { data: profiles, error: profilesError } = await supabaseAdmin
-      .from("profiles")
-      .select("user_id, full_name");
-
-    if (profilesError) throw profilesError;
-    if (!profiles || profiles.length === 0) {
-      return new Response(JSON.stringify({ message: "No users found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // If specific user requested, only process that user
+    let profiles: { user_id: string; full_name: string | null }[];
+    
+    if (requestUserId) {
+      const { data, error } = await supabaseAdmin
+        .from("profiles")
+        .select("user_id, full_name")
+        .eq("user_id", requestUserId)
+        .single();
+      if (error || !data) {
+        return new Response(JSON.stringify({ error: "User not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      profiles = [data];
+    } else {
+      const { data, error: profilesError } = await supabaseAdmin
+        .from("profiles")
+        .select("user_id, full_name");
+      if (profilesError) throw profilesError;
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ message: "No users found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      profiles = data;
     }
 
     let sentCount = 0;
@@ -82,12 +110,15 @@ serve(async (req: Request) => {
     for (const profile of profiles) {
       const userId = profile.user_id;
 
-      // Get user email
+      // Get user email (for name fallback)
       const { data: userData, error: userError } =
         await supabaseAdmin.auth.admin.getUserById(userId);
       if (userError || !userData?.user?.email) continue;
 
-      const userEmail = userData.user.email;
+      // Use recipient override or default to user's own email
+      const userEmail = recipientOverride || userData.user.email;
+      const userName = profile.full_name || userData.user.email.split("@")[0];
+
       const userName = profile.full_name || userEmail.split("@")[0];
 
       // Get trips for this user in the date range
