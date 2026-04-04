@@ -50,7 +50,6 @@ export default function Dashboard() {
             <UserMenu className="lg:hidden" />
           </div>
         </div>
-        </div>
       </div>
 
       {isLoading ? (
