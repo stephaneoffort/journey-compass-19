@@ -58,7 +58,7 @@ export default function MapView() {
 
         {/* Interactive Map */}
         {trips.length > 0 && (
-          <TripMap trips={trips} customCities={customCities} />
+          <TripMap trips={trips} customCities={customCities.filter((c): c is typeof c & { lat: number; lng: number } => c.lat != null && c.lng != null)} />
         )}
 
         {/* Destinations list */}
