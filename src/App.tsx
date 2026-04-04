@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { SplashScreen } from "./components/pwa/SplashScreen";
+import { ThemeProvider } from "./hooks/useTheme";
+import { SplashScreen } from "./components/pwa/SplashScreen";
 import Dashboard from "./pages/Dashboard";
 import TripsList from "./pages/TripsList";
 import VoyagesList from "./pages/VoyagesList";
