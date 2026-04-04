@@ -32,8 +32,14 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { isAdmin } = useUserRole();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const allNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ title: 'Administration', url: '/admin/roles', icon: Shield }] : []),
+  ];
 
   return (
     <Sidebar collapsible="icon">
