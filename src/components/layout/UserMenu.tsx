@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Settings, Sun, Moon } from 'lucide-react';
+import { LogOut, User, Settings, Sun, Moon, Shield } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
