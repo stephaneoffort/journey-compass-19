@@ -276,7 +276,7 @@ serve(async (req: Request) => {
       ];
       XLSX.utils.book_append_sheet(wb, wsTrips, "Détail");
 
-      // === Sheet 3: Factures ===
+      // === Sheet 3: Factures avec liens individuels ===
       const invoicesHeader = [
         "#",
         "Trajet",
@@ -314,21 +314,35 @@ serve(async (req: Request) => {
         XLSX.utils.book_append_sheet(wb, wsInvoices, "Factures");
       }
 
-      // Generate buffer
+      // Generate Excel buffer
       const excelBuffer = XLSX.write(wb, {
         type: "buffer",
         bookType: "xlsx",
       });
-      const base64Excel = btoa(
-        String.fromCharCode(...new Uint8Array(excelBuffer))
-      );
+
+      // Upload Excel to storage instead of attaching
+      const reportFileName = `reports/${userId}/rapport-${monthName.replace(/\s/g, "-")}.xlsx`;
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from("invoices")
+        .upload(reportFileName, excelBuffer, {
+          contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          upsert: true,
+        });
+
+      let excelDownloadUrl = "";
+      if (!uploadError) {
+        const { data: signedData } = await supabaseAdmin.storage
+          .from("invoices")
+          .createSignedUrl(reportFileName, 60 * 60 * 24 * 15); // 15 days
+        excelDownloadUrl = signedData?.signedUrl || "";
+      }
 
       // Build invoice links HTML for email body
       let invoiceLinksHtml = "";
       if (invoicesRows.length > 0) {
         invoiceLinksHtml = `
           <h3 style="color: #0ea5e9; margin-top: 24px;">📎 Factures et reçus</h3>
-          <p style="color: #888; font-size: 13px;">Les liens sont valides pendant 15 jours.</p>
+          <p style="color: #888; font-size: 13px;">Cliquez sur chaque lien pour télécharger le fichier. Les liens sont valides pendant 15 jours.</p>
           <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
             <tr style="background: #1a1a2e; color: #fff;">
               <th style="padding: 8px; text-align: left;">Trajet</th>
@@ -339,9 +353,9 @@ serve(async (req: Request) => {
               .map(
                 (row) => `
               <tr style="border-bottom: 1px solid #2a2a3e;">
-                <td style="padding: 8px;">${row[1]}</td>
-                <td style="padding: 8px;">${row[3]}</td>
-                <td style="padding: 8px;"><a href="${row[4]}" style="color: #0ea5e9;">Télécharger</a></td>
+                <td style="padding: 8px; color: #e2e2e2;">${row[1]}</td>
+                <td style="padding: 8px; color: #e2e2e2;">${row[3]}</td>
+                <td style="padding: 8px;"><a href="${row[4]}" style="color: #0ea5e9; text-decoration: underline;">📥 Télécharger</a></td>
               </tr>
             `
               )
@@ -350,7 +364,19 @@ serve(async (req: Request) => {
         `;
       }
 
-      // Send email
+      // Build Excel download link section
+      const excelLinkHtml = excelDownloadUrl
+        ? `
+          <div style="background: #1a1a2e; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+            <h3 style="color: #0ea5e9; margin-top: 0;">📊 Rapport Excel complet</h3>
+            <p style="color: #888; font-size: 13px; margin-bottom: 16px;">Le fichier contient le résumé, le détail des trajets et les liens vers vos factures.</p>
+            <a href="${excelDownloadUrl}" style="display: inline-block; background: #0ea5e9; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">📥 Télécharger le rapport Excel</a>
+            <p style="color: #666; font-size: 11px; margin-top: 12px;">Lien valide pendant 15 jours</p>
+          </div>
+        `
+        : "";
+
+      // Send email (no attachment, just links)
       const emailResponse = await resend.emails.send({
         from: "TripTracker <onboarding@resend.dev>",
         to: [userEmail],
@@ -375,11 +401,9 @@ serve(async (req: Request) => {
               </table>
             </div>
 
+            ${excelLinkHtml}
+
             ${invoiceLinksHtml}
-            
-            <p style="margin-top: 24px; color: #888; font-size: 13px;">
-              Le fichier Excel détaillé est en pièce jointe de cet email.
-            </p>
             
             <hr style="border-color: #2a2a3e; margin: 24px 0;" />
             <p style="color: #666; font-size: 12px; text-align: center;">
@@ -387,12 +411,6 @@ serve(async (req: Request) => {
             </p>
           </div>
         `,
-        attachments: [
-          {
-            filename: `rapport-triptracker-${monthName.replace(/\s/g, "-")}.xlsx`,
-            content: base64Excel,
-          },
-        ],
       });
 
       console.log(`Email sent to ${userEmail}:`, emailResponse);
