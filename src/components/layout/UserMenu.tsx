@@ -1,8 +1,10 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Settings, Sun, Moon } from 'lucide-react';
+import { LogOut, User, Settings, Sun, Moon, Shield } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,10 @@ export function UserMenu({ className }: { className?: string }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { roles, isAdmin } = useUserRole();
+
+  const roleLabel = isAdmin ? 'Administrateur' : roles.includes('manager') ? 'Manager' : roles.length > 0 ? 'Utilisateur' : null;
+  const roleColor = isAdmin ? 'bg-red-500/10 text-red-500 border-red-500/20' : roles.includes('manager') ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20';
 
   const handleSignOut = async () => {
     await signOut();
@@ -63,11 +69,17 @@ export function UserMenu({ className }: { className?: string }) {
           forceMount
         >
           <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
+            <div className="flex flex-col space-y-1.5">
               <p className="text-sm font-medium leading-none">{displayName}</p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user?.email}
               </p>
+              {roleLabel && (
+                <Badge variant="outline" className={`${roleColor} w-fit text-xs gap-1 mt-0.5`}>
+                  <Shield className="w-3 h-3" />
+                  {roleLabel}
+                </Badge>
+              )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
