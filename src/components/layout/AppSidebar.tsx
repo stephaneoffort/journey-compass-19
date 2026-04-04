@@ -1,6 +1,7 @@
-import { Home, Briefcase, Plus, Calendar, Map, Plane, Sun, Moon } from 'lucide-react';
+import { Home, Briefcase, Plus, Calendar, Map, Plane, Sun, Moon, Shield } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
 import {
   Sidebar,
   SidebarContent,

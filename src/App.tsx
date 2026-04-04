@@ -70,6 +70,7 @@ const App = () => {
                   <Route path="/add-single" element={<ProtectedRoute><AddTrip /></ProtectedRoute>} />
                   <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
                   <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
+                  <Route path="/admin/roles" element={<ProtectedRoute><AdminRoles /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
