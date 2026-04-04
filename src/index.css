@@ -186,16 +186,25 @@
     @apply bg-secondary/50 border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all;
   }
   
-  /* Fix date/time inputs in dark mode */
+  /* Fix date/time inputs */
   input[type="date"],
   input[type="time"] {
-    color-scheme: dark;
     @apply text-foreground;
   }
-  
+
+  .dark input[type="date"],
+  .dark input[type="time"] {
+    color-scheme: dark;
+  }
+
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
+
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
     cursor: pointer;
   }
   
