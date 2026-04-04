@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
-export function UserMenu() {
+export function UserMenu({ className }: { className?: string }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
