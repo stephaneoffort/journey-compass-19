@@ -1,20 +1,31 @@
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
+import { useVoyages } from '@/hooks/useVoyages';
 import { useCustomCities } from '@/hooks/useGeocodeCity';
 import { getFlag, transportEmoji } from '@/types/trip';
 import { Globe, MapPin, Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { TripMap } from '@/components/map/TripMap';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 
 export default function MapView() {
   const { data: trips = [], isLoading } = useTrips();
+  const { data: voyages = [] } = useVoyages();
   const { data: customCities = [] } = useCustomCities();
+  const [selectedVoyageId, setSelectedVoyageId] = useState<string>('all');
 
-  const completedTrips = trips.filter(t => t.status === 'completed');
+  const filteredTrips = useMemo(() => {
+    if (selectedVoyageId === 'all') return trips;
+    return trips.filter(t => t.voyageId === selectedVoyageId);
+  }, [trips, selectedVoyageId]);
+
+  const completedTrips = filteredTrips.filter(t => t.status === 'completed');
 
   const destinations = useMemo(() => {
     const map = new Map<string, { city: string; country: string; count: number }>();
-    trips.forEach(trip => {
+    filteredTrips.forEach(trip => {
       const key = `${trip.arrivalCity}-${trip.arrivalCountry}`;
       const existing = map.get(key);
       if (existing) {
@@ -24,7 +35,15 @@ export default function MapView() {
       }
     });
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
-  }, [trips]);
+  }, [filteredTrips]);
+
+  const getVoyageLabel = (v: typeof voyages[0]) => {
+    if (v.name && !/^\d{4}-\d{2}-\d{2}$/.test(v.name)) return v.name;
+    if (v.startDate) {
+      return new Date(v.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    return `Voyage du ${new Date(v.createdAt).toLocaleDateString('fr-FR')}`;
+  };
 
   if (isLoading) {
     return (
@@ -39,8 +58,27 @@ export default function MapView() {
   return (
     <PageLayout>
       <div className="page-header safe-top">
-        <h1 className="page-title">Carte</h1>
-        <p className="page-subtitle">Visualisez vos destinations</p>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="page-title">Carte</h1>
+            <p className="page-subtitle">Visualisez vos destinations</p>
+          </div>
+          {voyages.length > 0 && (
+            <Select value={selectedVoyageId} onValueChange={setSelectedVoyageId}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Filtrer par voyage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les voyages</SelectItem>
+                {voyages.map((v) => (
+                  <SelectItem key={v.id} value={v.id}>
+                    {getVoyageLabel(v)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
 
       <div className="px-5 space-y-6">
@@ -57,8 +95,14 @@ export default function MapView() {
         </div>
 
         {/* Interactive Map */}
-        {trips.length > 0 && (
-          <TripMap trips={trips} customCities={customCities.filter((c): c is typeof c & { lat: number; lng: number } => c.lat != null && c.lng != null)} />
+        {filteredTrips.length > 0 && (
+          <TripMap trips={filteredTrips} customCities={customCities.filter((c): c is typeof c & { lat: number; lng: number } => c.lat != null && c.lng != null)} />
+        )}
+
+        {filteredTrips.length === 0 && selectedVoyageId !== 'all' && (
+          <div className="glass-card p-6 text-center text-muted-foreground">
+            <p>Aucun trajet dans ce voyage.</p>
+          </div>
         )}
 
         {/* Destinations list */}
@@ -89,11 +133,11 @@ export default function MapView() {
         )}
 
         {/* Recent routes */}
-        {trips.length > 0 && (
+        {filteredTrips.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold mb-4">Derniers itinéraires</h2>
             <div className="space-y-2">
-              {trips.slice(0, 5).map((trip, index) => (
+              {filteredTrips.slice(0, 5).map((trip, index) => (
                 <div
                   key={trip.id}
                   className="glass-card p-4 flex items-center gap-3 animate-slide-up"
