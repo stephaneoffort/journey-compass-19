@@ -1,4 +1,4 @@
-import { Home, Briefcase, Plus, Calendar, Map, Plane } from 'lucide-react';
+import { Home, Briefcase, Plus, Calendar, Map, Plane, Sun, Moon } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -15,6 +15,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { UserMenu } from './UserMenu';
+import { useTheme } from '@/hooks/useTheme';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { title: 'Accueil', url: '/', icon: Home },
@@ -28,6 +30,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,7 +78,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 space-y-2">
+        <Button
+          variant="ghost"
+          size={collapsed ? 'icon' : 'default'}
+          onClick={toggleTheme}
+          className="w-full justify-start gap-3"
+        >
+          {theme === 'dark' ? (
+            <Sun className="h-5 w-5 shrink-0" />
+          ) : (
+            <Moon className="h-5 w-5 shrink-0" />
+          )}
+          {!collapsed && (
+            <span>{theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</span>
+          )}
+        </Button>
         <UserMenu />
       </SidebarFooter>
     </Sidebar>
