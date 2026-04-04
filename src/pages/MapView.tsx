@@ -7,7 +7,6 @@ import { Globe, MapPin, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { TripMap } from '@/components/map/TripMap';
 import { TransportFilter } from '@/components/trips/TransportFilter';
-import { TripMap } from '@/components/map/TripMap';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
