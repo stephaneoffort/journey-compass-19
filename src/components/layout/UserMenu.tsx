@@ -79,6 +79,10 @@ export function UserMenu({ className }: { className?: string }) {
             <Settings className="mr-2 h-4 w-4" />
             <span>Paramètres</span>
           </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer" onClick={toggleTheme}>
+            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            <span>{theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
             className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
