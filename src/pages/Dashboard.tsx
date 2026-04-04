@@ -44,7 +44,7 @@ export default function Dashboard() {
             <h1 className="page-title">Tableau de bord</h1>
             <p className="page-subtitle">Suivi de vos déplacements professionnels</p>
           </div>
-          <UserMenu />
+          <UserMenu className="lg:hidden" />
         </div>
       </div>
 
