@@ -69,11 +69,17 @@ export function UserMenu({ className }: { className?: string }) {
           forceMount
         >
           <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
+            <div className="flex flex-col space-y-1.5">
               <p className="text-sm font-medium leading-none">{displayName}</p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user?.email}
               </p>
+              {roleLabel && (
+                <Badge variant="outline" className={`${roleColor} w-fit text-xs gap-1 mt-0.5`}>
+                  <Shield className="w-3 h-3" />
+                  {roleLabel}
+                </Badge>
+              )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
