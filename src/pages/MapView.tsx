@@ -1,15 +1,17 @@
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
+import { useCustomCities } from '@/hooks/useGeocodeCity';
 import { getFlag, transportEmoji } from '@/types/trip';
 import { Globe, MapPin, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
+import { TripMap } from '@/components/map/TripMap';
 
 export default function MapView() {
   const { data: trips = [], isLoading } = useTrips();
-  
+  const { data: customCities = [] } = useCustomCities();
+
   const completedTrips = trips.filter(t => t.status === 'completed');
 
-  // Get unique destinations
   const destinations = useMemo(() => {
     const map = new Map<string, { city: string; country: string; count: number }>();
     trips.forEach(trip => {
@@ -18,11 +20,7 @@ export default function MapView() {
       if (existing) {
         existing.count++;
       } else {
-        map.set(key, {
-          city: trip.arrivalCity,
-          country: trip.arrivalCountry,
-          count: 1,
-        });
+        map.set(key, { city: trip.arrivalCity, country: trip.arrivalCountry, count: 1 });
       }
     });
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
@@ -46,26 +44,22 @@ export default function MapView() {
       </div>
 
       <div className="px-5 space-y-6">
-        {/* Map placeholder */}
-        <div className="glass-card p-6 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-            <Globe className="w-8 h-8 text-primary" />
+        {/* Stats */}
+        <div className="flex justify-center gap-6 text-sm">
+          <div className="text-center">
+            <div className="stat-value text-2xl">{destinations.length}</div>
+            <div className="text-muted-foreground">Destinations</div>
           </div>
-          <h3 className="font-semibold mb-2">Carte interactive</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            La carte interactive sera disponible prochainement
-          </p>
-          <div className="flex justify-center gap-4 text-sm">
-            <div className="text-center">
-              <div className="stat-value text-2xl">{destinations.length}</div>
-              <div className="text-muted-foreground">Destinations</div>
-            </div>
-            <div className="text-center">
-              <div className="stat-value text-2xl">{completedTrips.length}</div>
-              <div className="text-muted-foreground">Trajets</div>
-            </div>
+          <div className="text-center">
+            <div className="stat-value text-2xl">{completedTrips.length}</div>
+            <div className="text-muted-foreground">Trajets</div>
           </div>
         </div>
+
+        {/* Interactive Map */}
+        {trips.length > 0 && (
+          <TripMap trips={trips} customCities={customCities.filter((c): c is typeof c & { lat: number; lng: number } => c.lat != null && c.lng != null)} />
+        )}
 
         {/* Destinations list */}
         {destinations.length > 0 && (
@@ -73,7 +67,7 @@ export default function MapView() {
             <h2 className="text-lg font-semibold mb-4">Vos destinations</h2>
             <div className="space-y-2">
               {destinations.map((dest, index) => (
-                <div 
+                <div
                   key={`${dest.city}-${dest.country}`}
                   className="glass-card p-4 flex items-center gap-4 animate-slide-up"
                   style={{ animationDelay: `${index * 50}ms` }}
@@ -100,7 +94,7 @@ export default function MapView() {
             <h2 className="text-lg font-semibold mb-4">Derniers itinéraires</h2>
             <div className="space-y-2">
               {trips.slice(0, 5).map((trip, index) => (
-                <div 
+                <div
                   key={trip.id}
                   className="glass-card p-4 flex items-center gap-3 animate-slide-up"
                   style={{ animationDelay: `${(destinations.length + index) * 50}ms` }}
