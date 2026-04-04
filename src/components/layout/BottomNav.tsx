@@ -45,7 +45,7 @@ export function BottomNav() {
           />
           
           {/* Menu content */}
-          <div className="absolute bottom-20 left-4 right-4 pb-[env(safe-area-inset-bottom)] animate-slide-up">
+          <div className="absolute bottom-20 left-4 right-4 max-w-2xl mx-auto pb-[env(safe-area-inset-bottom)] animate-slide-up">
             <div className="glass-card p-4 space-y-3">
               {/* Header */}
               <div className="flex items-center justify-between mb-2">
