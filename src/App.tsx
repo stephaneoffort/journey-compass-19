@@ -22,6 +22,7 @@ import Auth from "./pages/Auth";
 import OAuthCallback from "./pages/OAuthCallback";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import AdminRoles from "./pages/AdminRoles";
 
 const queryClient = new QueryClient();
 
