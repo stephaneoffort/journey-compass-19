@@ -85,6 +85,8 @@ export default function MapView() {
         </div>
       </div>
 
+      <TransportFilter selected={selectedTransport} onChange={setSelectedTransport} />
+
       <div className="px-5 space-y-6">
         {/* Stats */}
         <div className="flex justify-center gap-6 text-sm">
