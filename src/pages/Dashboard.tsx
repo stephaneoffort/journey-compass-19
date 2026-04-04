@@ -1,6 +1,7 @@
 import { PageLayout } from '@/components/layout/PageLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { TransportChart } from '@/components/dashboard/TransportChart';
+import { SendReportDialog } from '@/components/dashboard/SendReportDialog';
 import { TripCard } from '@/components/trips/TripCard';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { useTrips } from '@/hooks/useTrips';
