@@ -45,8 +45,9 @@ export default function AdminRoles() {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data: userList, error } = await supabase.rpc('admin_list_users');
+      const { data: fnData, error } = await supabase.functions.invoke('admin-list-users');
       if (error) throw error;
+      const userList = (fnData as any)?.users ?? [];
 
       // Fetch all roles
       const { data: allRoles, error: rolesError } = await supabase
