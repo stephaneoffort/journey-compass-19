@@ -10,4 +10,8 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.monthly-report]
+[functions.monthly-report]
+verify_jwt = false
+
+[functions.admin-list-users]
 verify_jwt = false
