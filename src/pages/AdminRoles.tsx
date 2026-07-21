@@ -151,7 +151,7 @@ export default function AdminRoles() {
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="glass-card overflow-hidden">
+          <div className="card-flat overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
