@@ -191,7 +191,7 @@ describe("PWA — comportement hors-ligne des écrans et cache des données", ()
       }
     });
 
-    expect(result.current.isError).toBe(true);
+    await waitFor(() => expect(result.current.isError).toBe(true));
     expect((result.current.error as Error)?.message).toMatch(/fetch|offline|network/i);
   });
 
