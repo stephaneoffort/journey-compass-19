@@ -1,1 +1,0 @@
-DROP POLICY "Users can create their own profile" ON public.profiles;
