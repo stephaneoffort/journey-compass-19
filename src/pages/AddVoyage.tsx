@@ -127,10 +127,10 @@ export default function AddVoyage() {
                   </span>
                   <TransportIcon mode={trip.transportType} badgeClassName="w-6 h-6" className="w-3.5 h-3.5" />
                   <span>{trip.departureCity}</span>
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.departureCountry}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                   <ArrowRight className="w-3 h-3 text-muted-foreground" />
                   <span>{trip.arrivalCity}</span>
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.arrivalCountry}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.arrivalCountry}</span>
                 </div>
               ))}
             </div>

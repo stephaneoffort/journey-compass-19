@@ -191,18 +191,18 @@ export default function CalendarView() {
                   {trip.transportType === 'logement' ? (
                     <div className="flex items-center gap-2 text-sm mb-3">
                       <span className="font-medium">{trip.departureCity}</span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.departureCountry}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                     </div>
                   ) : trip.transportType !== 'frais' && (
                     <div className="flex items-center gap-2 text-sm mb-3 flex-wrap">
                       <span className="font-medium">{trip.departureCity}</span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.departureCountry}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                       {trip.departureStation && (
                         <span className="text-muted-foreground text-xs">({trip.departureStation})</span>
                       )}
                       <span className="text-muted-foreground">→</span>
                       <span className="font-medium">{trip.arrivalCity}</span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.arrivalCountry}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.arrivalCountry}</span>
                       {trip.arrivalStation && (
                         <span className="text-muted-foreground text-xs">({trip.arrivalStation})</span>
                       )}

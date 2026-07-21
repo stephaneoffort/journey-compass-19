@@ -59,7 +59,7 @@ export function LegTimeline({ trips, maxVisible = 4 }: LegTimelineProps) {
             <div className="min-w-0 pt-1">
               <p className="text-sm truncate">
                 {leg.city}
-                <span className="ml-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                <span className="ml-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                   {leg.countryCode}
                 </span>
               </p>

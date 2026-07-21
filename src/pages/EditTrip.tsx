@@ -517,17 +517,17 @@ export default function EditTrip() {
                 <div className="flex justify-center py-2">
                   <div className="flex items-center gap-2 text-sm flex-wrap">
                     <span>{departureMetroStation || departureTrainStation || departureBusStation || departure.city}</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{departure.country}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{departure.country}</span>
                     <ArrowRight className="w-4 h-4 text-primary" />
                     {stopovers.filter(s => s.city).map((stop, i) => (
                       <span key={i} className="flex items-center gap-2">
                         <span>{stop.city}</span>
-                        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{stop.country}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{stop.country}</span>
                         <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       </span>
                     ))}
                     <span>{arrivalMetroStation || arrivalTrainStation || arrivalBusStation || arrival.city}</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{arrival.country}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{arrival.country}</span>
                   </div>
                 </div>
               )}

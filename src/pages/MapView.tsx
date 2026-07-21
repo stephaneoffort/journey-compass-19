@@ -153,20 +153,20 @@ export default function MapView() {
                   <TransportIcon mode={trip.transportType} badgeClassName="w-8 h-8" className="w-4 h-4" />
                   <div className="flex-1 flex items-center gap-1.5 text-sm flex-wrap">
                     <span className="truncate">{trip.departureCity}</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.departureCountry}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                     <span className="text-muted-foreground">→</span>
                     {trip.via.length > 0 && (
                       <>
                         {trip.via.map((stop, i) => (
                           <span key={i} className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{stop.country}</span>
+                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{stop.country}</span>
                             <span className="text-muted-foreground">→</span>
                           </span>
                         ))}
                       </>
                     )}
                     <span className="truncate">{trip.arrivalCity}</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">{trip.arrivalCountry}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.arrivalCountry}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
                     {trip.distanceKm.toLocaleString('fr-FR')} km

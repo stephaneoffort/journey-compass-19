@@ -96,14 +96,14 @@ export function VoyageSummary({ trips }: VoyageSummaryProps) {
                 {/* Route */}
                 <div className="flex items-center gap-1.5 text-sm font-medium">
                   <span className="truncate">{trip.departureCity}</span>
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     {trip.departureCountry}
                   </span>
                   {trip.transportType !== 'frais' && trip.transportType !== 'logement' && (
                     <>
                       <span className="text-muted-foreground">→</span>
                       <span className="truncate">{trip.arrivalCity}</span>
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                         {trip.arrivalCountry}
                       </span>
                     </>

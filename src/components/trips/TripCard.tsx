@@ -33,7 +33,7 @@ export const TripCard = forwardRef<HTMLAnchorElement, TripCardProps>(
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 text-sm font-medium truncate">
               <span className="truncate">{trip.departureCity}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                 {trip.departureCountry}
               </span>
               <span className="text-muted-foreground shrink-0">→</span>
@@ -41,14 +41,14 @@ export const TripCard = forwardRef<HTMLAnchorElement, TripCardProps>(
                 trip.via.map((stop, i) => (
                   <span key={i} className="flex items-center gap-1.5 shrink-0">
                     <span className="truncate">{stop.city}</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                       {stop.country}
                     </span>
                     <span className="text-muted-foreground">→</span>
                   </span>
                 ))}
               <span className="truncate">{trip.arrivalCity}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70 shrink-0">
+              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground shrink-0">
                 {trip.arrivalCountry}
               </span>
             </div>

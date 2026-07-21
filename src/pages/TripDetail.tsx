@@ -101,21 +101,21 @@ export default function TripDetail() {
 
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xl font-semibold tracking-tight mb-2">
             <span>{trip.departureCity}</span>
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground/70">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {trip.departureCountry}
             </span>
             <span className="text-muted-foreground">→</span>
             {trip.via.length > 0 && trip.via.map((stop, i) => (
               <span key={i} className="flex items-center gap-2">
                 <span className="text-base">{stop.city}</span>
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground/70">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   {stop.country}
                 </span>
                 <span className="text-muted-foreground">→</span>
               </span>
             ))}
             <span>{trip.arrivalCity}</span>
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground/70">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {trip.arrivalCountry}
             </span>
           </div>
