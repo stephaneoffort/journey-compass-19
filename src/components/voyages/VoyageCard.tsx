@@ -24,7 +24,7 @@ export function VoyageCard({
   const stepCount = trips.length + (trips.length > 0 ? 1 : 0);
 
   return (
-    <article className="rounded-xl border border-border bg-card">
+    <article className="card-flat">
       <header className="flex items-start justify-between p-4 pb-3">
         <div className="min-w-0">
           <h2 className="text-base font-semibold tracking-tight truncate">{name}</h2>

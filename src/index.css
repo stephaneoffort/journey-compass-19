@@ -184,13 +184,16 @@
     @apply bg-[hsl(var(--transport-logement))]/15 text-[hsl(var(--transport-logement))];
   }
 
-  .trip-card {
-    @apply glass-card p-4 flex items-center gap-4 transition-all duration-300;
+  .card-flat {
+    @apply bg-card border border-border rounded-xl;
   }
-  
+
+  .trip-card {
+    @apply card-flat p-4 flex items-center gap-4 transition-colors;
+  }
+
   .trip-card:hover {
-    @apply bg-card border-white/10;
-    transform: translateX(4px);
+    @apply bg-secondary/40;
   }
   
   .input-glass {
