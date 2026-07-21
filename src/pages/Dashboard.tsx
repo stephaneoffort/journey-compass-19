@@ -8,7 +8,6 @@ import { useTrips } from '@/hooks/useTrips';
 import { TransportType } from '@/types/trip';
 import { Plane, Route, Leaf, TrendingUp, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { InstallBanner } from '@/components/pwa/InstallBanner';
 
 export default function Dashboard() {
@@ -118,14 +117,17 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="glass-card p-8 text-center">
+              <div className="card-flat p-8 text-center">
                 <Plane className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="font-medium mb-2">Aucun trajet</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Commencez par ajouter votre premier trajet
                 </p>
-                <Link to="/add">
-                  <Button className="btn-primary">Ajouter un trajet</Button>
+                <Link
+                  to="/add"
+                  className="inline-flex items-center text-sm font-medium rounded-lg px-4 py-2.5 bg-foreground text-background hover:bg-foreground/90 transition-colors"
+                >
+                  Ajouter un trajet
                 </Link>
               </div>
             )}
