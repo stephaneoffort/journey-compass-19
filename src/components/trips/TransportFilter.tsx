@@ -1,4 +1,6 @@
-import { TransportType, transportEmoji, transportLabels } from '@/types/trip';
+import { TransportType, transportLabels } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
+import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TransportFilterProps {
@@ -24,7 +26,7 @@ export function TransportFilter({ selected, onChange }: TransportFilterProps) {
               : 'bg-secondary text-muted-foreground hover:text-foreground'
           )}
         >
-          {type === 'all' ? '🌍' : transportEmoji[type]}
+          {type === 'all' ? <Globe className="w-4 h-4" /> : <TransportIcon mode={type} bare className="w-4 h-4" />}
           <span>{type === 'all' ? 'Tous' : transportLabels[type]}</span>
         </button>
       ))}

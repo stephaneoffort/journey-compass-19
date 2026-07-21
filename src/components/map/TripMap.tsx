@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Trip, getFlag, transportEmoji } from '@/types/trip';
+import { Trip, transportLabels } from '@/types/trip';
 import { getCityCoordinates } from '@/data/cityCoordinates';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -111,14 +111,14 @@ export function TripMap({ trips, customCities }: TripMapProps) {
 
   if (waypoints.length === 0) {
     return (
-      <div className="glass-card p-6 text-center text-muted-foreground">
+      <div className="card-flat p-6 text-center text-muted-foreground">
         <p>Aucun lieu avec coordonnées trouvé pour afficher la carte.</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card overflow-hidden rounded-xl" style={{ height: '450px' }}>
+    <div className="card-flat overflow-hidden" style={{ height: '450px' }}>
       <MapContainer
         center={[waypoints[0].lat, waypoints[0].lng]}
         zoom={5}
@@ -146,10 +146,10 @@ export function TripMap({ trips, customCities }: TripMapProps) {
           >
             <Popup>
               <div style={{ minWidth: 140 }}>
-                <strong>{getFlag(wp.country)} {wp.city}</strong>
+                <strong>{wp.city} <span style={{ fontSize: 10, fontWeight: 500, textTransform: 'uppercase', opacity: 0.6 }}>{wp.country}</span></strong>
                 <br />
                 <span style={{ fontSize: 12 }}>
-                  {transportEmoji[wp.trip.transportType]} {format(new Date(wp.trip.departureDate), 'dd MMM yyyy', { locale: fr })}
+                  {transportLabels[wp.trip.transportType]} · {format(new Date(wp.trip.departureDate), 'dd MMM yyyy', { locale: fr })}
                 </span>
                 <br />
                 <span style={{ fontSize: 11, color: '#888' }}>Étape n°{wp.num}</span>
