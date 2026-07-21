@@ -301,7 +301,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               type="button"
               onClick={() => handleTransportTypeChange(type)}
               className={cn(
-                'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                'flex flex-col items-center gap-1 p-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 transportType === type
                   ? `transport-${type} ring-2 ring-current`
                   : 'bg-secondary text-muted-foreground hover:text-foreground'

@@ -166,7 +166,7 @@ export function CityAutocomplete({ value, onChange, placeholder = 'Rechercher un
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
-          className="input-glass pl-10 pr-10"
+          className="pl-10 pr-10"
         />
         {showLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />

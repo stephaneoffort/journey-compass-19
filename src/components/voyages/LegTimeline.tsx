@@ -75,7 +75,7 @@ export function LegTimeline({ trips, maxVisible = 4 }: LegTimelineProps) {
             e.stopPropagation();
             setExpanded(true);
           }}
-          className="text-xs font-medium mb-2 ml-10 text-muted-foreground hover:underline"
+          className="text-xs font-medium mb-2 ml-10 text-muted-foreground hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           + {hidden} autre{hidden > 1 ? 's' : ''} étape{hidden > 1 ? 's' : ''}
         </button>
@@ -88,7 +88,7 @@ export function LegTimeline({ trips, maxVisible = 4 }: LegTimelineProps) {
             e.stopPropagation();
             setExpanded(false);
           }}
-          className="text-xs font-medium mb-2 ml-10 text-muted-foreground hover:underline"
+          className="text-xs font-medium mb-2 ml-10 text-muted-foreground hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           Réduire
         </button>

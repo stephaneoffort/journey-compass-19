@@ -58,7 +58,7 @@ export function TransportOptions({
                 type="button"
                 onClick={() => setBookingStatus(status)}
                 className={cn(
-                  'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium',
+                  'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   bookingStatus === status
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
@@ -102,7 +102,7 @@ export function TransportOptions({
                 type="button"
                 onClick={() => setCarType(type)}
                 className={cn(
-                  'p-3 rounded-xl transition-all text-sm font-medium text-center',
+                  'p-3 rounded-xl transition-all text-sm font-medium text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   carType === type
                     ? 'bg-transport-car/20 text-transport-car ring-2 ring-transport-car'
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
@@ -126,7 +126,7 @@ export function TransportOptions({
                 type="button"
                 onClick={() => setAccommodationType(type)}
                 className={cn(
-                  'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium',
+                  'flex items-center justify-center gap-2 p-3 rounded-xl transition-all text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   accommodationType === type
                     ? 'bg-amber-500/20 text-amber-600 ring-2 ring-amber-500'
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
@@ -149,7 +149,6 @@ export function TransportOptions({
               value={ticketNumber}
               onChange={(e) => setTicketNumber(e.target.value)}
               placeholder="Ex: AF1234"
-              className="input-glass"
             />
           </div>
           <div className="space-y-2">
@@ -158,7 +157,6 @@ export function TransportOptions({
               value={seatNumber}
               onChange={(e) => setSeatNumber(e.target.value)}
               placeholder="Ex: 12A"
-              className="input-glass"
             />
           </div>
         </div>

@@ -195,7 +195,7 @@ export function MetroStationSelect({ city, value, onChange, label, placeholder }
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             placeholder={placeholder || defaultPlaceholder}
-            className="input-glass pl-10 pr-10"
+            className="pl-10 pr-10"
           />
           {value && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2">

@@ -37,7 +37,7 @@ export function VoyageCard({
           <button
             type="button"
             onClick={onAddTrip}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label="Ajouter un déplacement"
             title="Ajouter un déplacement"
           >
