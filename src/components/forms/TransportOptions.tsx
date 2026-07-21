@@ -77,7 +77,7 @@ export function TransportOptions({
         <div className="space-y-2">
           <Label className="text-muted-foreground">{companyLabel}</Label>
           <Select value={company} onValueChange={setCompany}>
-            <SelectTrigger className="input-glass">
+            <SelectTrigger>
               <SelectValue placeholder={`Choisir ${companyLabel.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">

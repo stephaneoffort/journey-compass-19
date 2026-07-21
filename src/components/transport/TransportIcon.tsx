@@ -45,10 +45,26 @@ interface TransportIconProps {
   mode: LegMode;
   className?: string;
   badgeClassName?: string;
+  /** Render only the glyph, without the colored circular badge (for use inside an already-colored container). */
+  bare?: boolean;
 }
 
-export function TransportIcon({ mode, className, badgeClassName }: TransportIconProps) {
+export function TransportIcon({ mode, className, badgeClassName, bare }: TransportIconProps) {
   const label = MODE_LABEL[mode] ?? mode;
+
+  const svg = (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={cn('w-4 h-4', className)} aria-hidden="true">
+      <path d={ICON_PATHS[mode] ?? ICON_PATHS.start} />
+    </svg>
+  );
+
+  if (bare) {
+    return (
+      <span role="img" aria-label={label} title={label}>
+        {svg}
+      </span>
+    );
+  }
 
   return (
     <span
@@ -61,9 +77,7 @@ export function TransportIcon({ mode, className, badgeClassName }: TransportIcon
       aria-label={label}
       title={label}
     >
-      <svg viewBox="0 0 24 24" fill="currentColor" className={cn('w-4 h-4', className)} aria-hidden="true">
-        <path d={ICON_PATHS[mode] ?? ICON_PATHS.start} />
-      </svg>
+      {svg}
     </span>
   );
 }

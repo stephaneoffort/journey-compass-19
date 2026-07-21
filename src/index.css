@@ -184,6 +184,10 @@
     @apply bg-[hsl(var(--transport-logement))]/15 text-[hsl(var(--transport-logement))];
   }
 
+  .transport-frais {
+    @apply bg-muted text-muted-foreground;
+  }
+
   .card-flat {
     @apply bg-card border border-border rounded-xl;
   }
