@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useCreateVoyage, useAddTripToVoyage, useUpdateVoyage } from '@/hooks/useVoyages';
-import { Trip, transportEmoji, getFlag } from '@/types/trip';
+import { Trip } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
+import { StatsRow } from '@/components/voyages/StatsRow';
 import { Plus, Check, ArrowRight, Pencil } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 type Step = 'name' | 'trip' | 'confirm';
 
@@ -107,7 +108,7 @@ export default function AddVoyage() {
       <div className="px-5 pb-8">
         {/* Progress indicator */}
         {addedTrips.length > 0 && (
-          <div className="glass-card p-4 mb-6">
+          <div className="card-flat p-4 mb-6">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium">
                 {voyageName || addedTrips[0]?.departureDate}
@@ -124,46 +125,28 @@ export default function AddVoyage() {
                   <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">
                     {index + 1}
                   </span>
-                  <span>{transportEmoji[trip.transportType]}</span>
-                  <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
+                  <TransportIcon mode={trip.transportType} badgeClassName="w-6 h-6" className="w-3.5 h-3.5" />
                   <span>{trip.departureCity}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                   <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                  <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
                   <span>{trip.arrivalCity}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.arrivalCountry}</span>
                 </div>
               ))}
             </div>
+          </div>
+        )}
 
-            {/* Totals */}
-            <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border">
-              <div className="text-center">
-                <div className="text-lg font-semibold">{totalDistance.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground">km</div>
-              </div>
-              <div className="text-center">
-                <div className={cn(
-                  'text-lg font-semibold',
-                  totalCo2 < 100 ? 'text-transport-train' : 
-                  totalCo2 < 500 ? 'text-transport-car' : 'text-destructive'
-                )}>
-                  {totalCo2.toFixed(1)}
-                </div>
-                <div className="text-xs text-muted-foreground">kg CO₂</div>
-              </div>
-              {totalPrice > 0 && (
-                <div className="text-center">
-                  <div className="text-lg font-semibold">{totalPrice.toFixed(0)}€</div>
-                  <div className="text-xs text-muted-foreground">total</div>
-                </div>
-              )}
-            </div>
+        {addedTrips.length > 0 && (
+          <div className="card-flat -mt-2 mb-6">
+            <StatsRow distanceKm={totalDistance} co2Kg={totalCo2} price={totalPrice} />
           </div>
         )}
 
         {/* Step: Name */}
         {step === 'name' && (
           <div className="space-y-6">
-            <div className="glass-card p-4 space-y-4">
+            <div className="card-flat p-4 space-y-4">
               <div className="space-y-2">
                 <Label className="text-muted-foreground">
                   Nom du voyage (optionnel)
@@ -174,7 +157,7 @@ export default function AddVoyage() {
                     value={voyageName}
                     onChange={(e) => setVoyageName(e.target.value)}
                     placeholder="Ex: Conférence Berlin, Formation Paris..."
-                    className="input-glass pl-10"
+                    className="pl-10"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -207,7 +190,7 @@ export default function AddVoyage() {
         {/* Step: Confirm */}
         {step === 'confirm' && (
           <div className="space-y-4">
-            <div className="glass-card p-6 text-center">
+            <div className="card-flat p-6 text-center">
               <div className="w-16 h-16 rounded-full bg-transport-train/20 flex items-center justify-center mx-auto mb-4">
                 <Check className="w-8 h-8 text-transport-train" />
               </div>

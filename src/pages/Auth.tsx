@@ -183,7 +183,7 @@ export default function Auth() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="glass-card p-5 space-y-3">
+        <form onSubmit={handleSubmit} className="card-flat p-5 space-y-3">
           {!isLogin && (
             <div className="space-y-1.5">
               <Label htmlFor="fullName" className="text-muted-foreground text-sm">Nom complet</Label>
@@ -195,7 +195,7 @@ export default function Auth() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Jean Dupont"
-                  className="input-glass pl-10 h-11 text-base"
+                  className="pl-10 h-11 text-base"
                 />
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
-                className="input-glass pl-10 h-11 text-base"
+                className="pl-10 h-11 text-base"
                 required
               />
             </div>
@@ -228,7 +228,7 @@ export default function Auth() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="input-glass pl-10 h-11 text-base"
+                className="pl-10 h-11 text-base"
                 required
               />
             </div>

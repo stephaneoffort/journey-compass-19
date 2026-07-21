@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
-import { transportEmoji, transportLabels, getFlag } from '@/types/trip';
-import { ChevronLeft, ChevronRight, Loader2, X, Clock, Calendar } from 'lucide-react';
+import { TransportType, transportLabels } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
+import { ChevronLeft, ChevronRight, Loader2, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -11,6 +12,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
+const transportDotColor: Record<TransportType, string> = {
+  plane: 'hsl(var(--transport-plane))',
+  train: 'hsl(var(--transport-train))',
+  car: 'hsl(var(--transport-car))',
+  bus: 'hsl(var(--transport-bus))',
+  boat: 'hsl(var(--transport-boat))',
+  metro: 'hsl(var(--transport-metro))',
+  logement: 'hsl(var(--transport-logement))',
+  frais: 'hsl(var(--muted-foreground))',
+};
 
 export default function CalendarView() {
   const { data: trips = [], isLoading } = useTrips();
@@ -126,12 +138,10 @@ export default function CalendarView() {
                 {dayTrips.length > 0 && (
                   <div className="flex gap-0.5">
                     {dayTrips.slice(0, 3).map((trip, i) => (
-                      <span 
-                        key={i} 
-                        className={cn(
-                          'w-1.5 h-1.5 rounded-full',
-                          isSelected ? 'bg-primary-foreground' : `bg-transport-${trip.transportType}`
-                        )}
+                      <span
+                        key={i}
+                        className={cn('w-1.5 h-1.5 rounded-full', isSelected && 'bg-primary-foreground')}
+                        style={!isSelected ? { backgroundColor: transportDotColor[trip.transportType] } : undefined}
                       />
                     ))}
                   </div>
@@ -160,13 +170,13 @@ export default function CalendarView() {
           {selectedTrips.length > 0 ? (
             <div className="space-y-4 mt-2">
               {selectedTrips.map(trip => (
-                <div 
-                  key={trip.id} 
-                  className="p-4 rounded-xl bg-secondary/50 border border-border"
+                <div
+                  key={trip.id}
+                  className="p-4 card-flat"
                 >
                   {/* Transport type header */}
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-3xl">{transportEmoji[trip.transportType]}</span>
+                    <TransportIcon mode={trip.transportType} badgeClassName="w-11 h-11" className="w-5 h-5" />
                     <div>
                       <div className="font-semibold text-foreground">
                         {transportLabels[trip.transportType]}
@@ -180,19 +190,19 @@ export default function CalendarView() {
                   {/* Route or location */}
                   {trip.transportType === 'logement' ? (
                     <div className="flex items-center gap-2 text-sm mb-3">
-                      <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
                       <span className="font-medium">{trip.departureCity}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                     </div>
                   ) : trip.transportType !== 'frais' && (
                     <div className="flex items-center gap-2 text-sm mb-3 flex-wrap">
-                      <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
                       <span className="font-medium">{trip.departureCity}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                       {trip.departureStation && (
                         <span className="text-muted-foreground text-xs">({trip.departureStation})</span>
                       )}
                       <span className="text-muted-foreground">→</span>
-                      <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
                       <span className="font-medium">{trip.arrivalCity}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.arrivalCountry}</span>
                       {trip.arrivalStation && (
                         <span className="text-muted-foreground text-xs">({trip.arrivalStation})</span>
                       )}

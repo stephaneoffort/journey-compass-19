@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { TransportType, transportLabels, transportEmoji } from '@/types/trip';
+import { TransportType, transportLabels } from '@/types/trip';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 interface TransportChartProps {
@@ -24,13 +24,12 @@ export const TransportChart = forwardRef<HTMLDivElement, TransportChartProps>(
       .map(([type, value]) => ({
         name: transportLabels[type as TransportType],
         value,
-        emoji: transportEmoji[type as TransportType],
         color: transportColors[type as TransportType],
       }));
 
     if (chartData.length === 0) {
       return (
-        <div ref={ref} className="glass-card p-6">
+        <div ref={ref} className="card-flat p-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Répartition par transport</h3>
           <div className="h-40 flex items-center justify-center text-muted-foreground">
             Aucune donnée
@@ -40,7 +39,7 @@ export const TransportChart = forwardRef<HTMLDivElement, TransportChartProps>(
     }
 
     return (
-      <div ref={ref} className="glass-card p-6">
+      <div ref={ref} className="card-flat p-6">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">Répartition par transport</h3>
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
@@ -64,7 +63,7 @@ export const TransportChart = forwardRef<HTMLDivElement, TransportChartProps>(
         <div className="flex flex-wrap justify-center gap-3 mt-4">
           {chartData.map((entry) => (
             <div key={entry.name} className="flex items-center gap-1.5 text-xs">
-              <span>{entry.emoji}</span>
+              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
               <span className="text-muted-foreground">{entry.name}</span>
               <span className="font-medium">{entry.value}</span>
             </div>

@@ -35,7 +35,7 @@ export function CarExpenses({ expenses, onChange }: CarExpensesProps) {
             value={expenses.tollExpense}
             onChange={(e) => updateExpense('tollExpense', e.target.value)}
             placeholder="0.00"
-            className="input-glass text-sm"
+            className="text-sm"
           />
         </div>
         
@@ -48,7 +48,7 @@ export function CarExpenses({ expenses, onChange }: CarExpensesProps) {
             value={expenses.parkingExpense}
             onChange={(e) => updateExpense('parkingExpense', e.target.value)}
             placeholder="0.00"
-            className="input-glass text-sm"
+            className="text-sm"
           />
         </div>
         
@@ -61,7 +61,7 @@ export function CarExpenses({ expenses, onChange }: CarExpensesProps) {
             value={expenses.otherExpense}
             onChange={(e) => updateExpense('otherExpense', e.target.value)}
             placeholder="0.00"
-            className="input-glass text-sm"
+            className="text-sm"
           />
         </div>
       </div>

@@ -3,11 +3,10 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useVoyage, useDeleteVoyage, useUpdateVoyage } from '@/hooks/useVoyages';
 import { TripCard } from '@/components/trips/TripCard';
 import { VoyageSummary } from '@/components/voyages/VoyageSummary';
-import { transportEmoji, getFlag } from '@/types/trip';
+import { StatsRow } from '@/components/voyages/StatsRow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Calendar, Route, Leaf, Trash2, Loader2, Pencil, Check, X, Plus, Download } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ArrowLeft, Calendar, Trash2, Loader2, Pencil, Check, X, Plus, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -17,11 +16,11 @@ export default function VoyageDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const { data: voyage, isLoading } = useVoyage(id || '');
   const deleteVoyage = useDeleteVoyage();
   const updateVoyage = useUpdateVoyage();
-  
+
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
 
@@ -57,6 +56,8 @@ export default function VoyageDetail() {
       year: 'numeric',
     });
   };
+
+  const stepCount = voyage.trips.length + (voyage.trips.length > 0 ? 1 : 0);
 
   const handleDelete = async () => {
     if (confirm('Supprimer ce voyage et tous ses trajets ?')) {
@@ -99,85 +100,61 @@ export default function VoyageDetail() {
 
       <div className="px-5 space-y-6">
         {/* Header */}
-        <div className="glass-card p-6 animate-slide-up">
-          {isEditingName ? (
-            <div className="flex items-center gap-2 mb-4">
-              <Input
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                placeholder="Nom du voyage"
-                className="input-glass flex-1"
-                autoFocus
-              />
-              <Button size="icon" variant="ghost" onClick={handleSaveName}>
-                <Check className="w-4 h-4 text-transport-train" />
-              </Button>
-              <Button size="icon" variant="ghost" onClick={() => setIsEditingName(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold">
-                  {voyage.name || formatDate(voyage.startDate)}
-                </h1>
-                <button
-                  onClick={handleStartEditName}
-                  className="text-sm text-primary hover:underline flex items-center gap-1 mt-1"
-                >
-                  <Pencil className="w-3 h-3" />
-                  Modifier le nom
-                </button>
+        <div className="card-flat animate-slide-up">
+          <div className="p-5 pb-4">
+            {isEditingName ? (
+              <div className="flex items-center gap-2 mb-3">
+                <Input
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  placeholder="Nom du voyage"
+                  className="flex-1"
+                  autoFocus
+                />
+                <Button size="icon" variant="ghost" onClick={handleSaveName}>
+                  <Check className="w-4 h-4 text-[hsl(var(--transport-train))]" />
+                </Button>
+                <Button size="icon" variant="ghost" onClick={() => setIsEditingName(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <span className="text-sm text-muted-foreground bg-secondary px-3 py-1 rounded-full">
-                {voyage.trips.length} trajet{voyage.trips.length > 1 ? 's' : ''}
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="w-4 h-4" />
-            <span>{formatDate(voyage.startDate)}</span>
-            {voyage.endDate && voyage.endDate !== voyage.startDate && (
-              <>
-                <span>→</span>
-                <span>{formatDate(voyage.endDate)}</span>
-              </>
+            ) : (
+              <div className="flex items-start justify-between mb-3">
+                <div className="min-w-0">
+                  <h1 className="text-xl font-semibold tracking-tight truncate">
+                    {voyage.name || formatDate(voyage.startDate)}
+                  </h1>
+                  <button
+                    onClick={handleStartEditName}
+                    className="text-xs text-muted-foreground hover:text-foreground hover:underline flex items-center gap-1 mt-1"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    Modifier le nom
+                  </button>
+                </div>
+                <span className="text-[11px] font-medium rounded-full px-2 py-0.5 bg-secondary text-secondary-foreground shrink-0">
+                  {stepCount} étape{stepCount > 1 ? 's' : ''}
+                </span>
+              </div>
             )}
-          </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="glass-card p-4 text-center animate-slide-up" style={{ animationDelay: '100ms' }}>
-            <Route className="w-5 h-5 mx-auto mb-2 text-primary" />
-            <div className="font-semibold">{voyage.totalDistanceKm.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">km</div>
-          </div>
-          
-          <div className="glass-card p-4 text-center animate-slide-up" style={{ animationDelay: '150ms' }}>
-            <Leaf className={cn(
-              'w-5 h-5 mx-auto mb-2',
-              voyage.totalCo2Kg < 100 ? 'text-transport-train' : 
-              voyage.totalCo2Kg < 500 ? 'text-transport-car' : 'text-destructive'
-            )} />
-            <div className={cn(
-              'font-semibold',
-              voyage.totalCo2Kg < 100 ? 'text-transport-train' : 
-              voyage.totalCo2Kg < 500 ? 'text-transport-car' : 'text-destructive'
-            )}>
-              {voyage.totalCo2Kg.toFixed(0)}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{formatDate(voyage.startDate)}</span>
+              {voyage.endDate && voyage.endDate !== voyage.startDate && (
+                <>
+                  <span>→</span>
+                  <span>{formatDate(voyage.endDate)}</span>
+                </>
+              )}
             </div>
-            <div className="text-xs text-muted-foreground">kg CO₂</div>
           </div>
-          
-          {voyage.totalPrice > 0 && (
-            <div className="glass-card p-4 text-center animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <div className="text-lg font-semibold">{voyage.totalPrice.toFixed(0)}€</div>
-              <div className="text-xs text-muted-foreground">total</div>
-            </div>
-          )}
+
+          <StatsRow
+            distanceKm={voyage.totalDistanceKm}
+            co2Kg={voyage.totalCo2Kg}
+            price={voyage.totalPrice}
+          />
         </div>
 
         {/* Summary */}
@@ -190,13 +167,13 @@ export default function VoyageDetail() {
               Déplacements
             </h2>
             <Link to={`/add-single?voyageId=${voyage.id}`}>
-              <Button variant="ghost" size="sm" className="text-primary">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                 <Plus className="w-4 h-4 mr-1" />
                 Ajouter
               </Button>
             </Link>
           </div>
-          
+
           {voyage.trips.map((trip, index) => (
             <div
               key={trip.id}
@@ -204,10 +181,10 @@ export default function VoyageDetail() {
               style={{ animationDelay: `${250 + index * 50}ms` }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium">
+                <span className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-medium text-secondary-foreground">
                   {index + 1}
                 </span>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {formatDate(trip.departureDate)}
                 </span>
               </div>
@@ -230,7 +207,7 @@ export default function VoyageDetail() {
             <Download className="w-4 h-4 mr-2" />
             Télécharger la feuille de calculs (.xlsx)
           </Button>
-          
+
           <Button
             variant="outline"
             className="w-full text-destructive hover:bg-destructive/10"

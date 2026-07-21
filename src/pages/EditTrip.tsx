@@ -10,7 +10,8 @@ import { BusStationSelect } from '@/components/forms/BusStationSelect';
 import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroStationSelect';
 import { CarExpenses, CarExpensesData } from '@/components/forms/CarExpenses';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
-import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
+import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportLabels, co2PerKm } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -372,13 +373,13 @@ export default function EditTrip() {
                 type="button"
                 onClick={() => handleTransportTypeChange(type)}
                 className={cn(
-                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   transportType === type
                     ? `transport-${type} ring-2 ring-current`
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
                 )}
               >
-                <span className="text-2xl">{transportEmoji[type]}</span>
+                <TransportIcon mode={type} bare className="w-6 h-6" />
                 <span className="text-xs font-medium">{transportLabels[type]}</span>
               </button>
             ))}
@@ -386,7 +387,7 @@ export default function EditTrip() {
         </div>
 
         {/* Transport-specific options */}
-        <div className="glass-card p-4 space-y-4">
+        <div className="card-flat p-4 space-y-4">
           <TransportOptions
             transportType={transportType}
             company={company}
@@ -415,7 +416,7 @@ export default function EditTrip() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="Ex: 125.50"
-                className={cn('input-glass', errors.price && 'border-destructive')}
+                className={cn(errors.price && 'border-destructive')}
               />
               {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
             </div>
@@ -428,7 +429,7 @@ export default function EditTrip() {
         </div>
 
         {/* Departure & Arrival */}
-        <div className="glass-card p-4 space-y-4">
+        <div className="card-flat p-4 space-y-4">
           {transportType === 'frais' ? (
             // Frais divers: optional single city
             <div className="space-y-2">
@@ -515,18 +516,18 @@ export default function EditTrip() {
               {departure && arrival && (
                 <div className="flex justify-center py-2">
                   <div className="flex items-center gap-2 text-sm flex-wrap">
-                    <span className="flag-emoji">{getFlag(departure.country)}</span>
                     <span>{departureMetroStation || departureTrainStation || departureBusStation || departure.city}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{departure.country}</span>
                     <ArrowRight className="w-4 h-4 text-primary" />
                     {stopovers.filter(s => s.city).map((stop, i) => (
                       <span key={i} className="flex items-center gap-2">
-                        <span className="flag-emoji">{getFlag(stop.country)}</span>
                         <span>{stop.city}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{stop.country}</span>
                         <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       </span>
                     ))}
-                    <span className="flag-emoji">{getFlag(arrival.country)}</span>
                     <span>{arrivalMetroStation || arrivalTrainStation || arrivalBusStation || arrival.city}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{arrival.country}</span>
                   </div>
                 </div>
               )}
@@ -584,7 +585,7 @@ export default function EditTrip() {
         </div>
 
         {/* Dates & Times - Hide times for logement and frais */}
-        <div className="glass-card p-4 space-y-4">
+        <div className="card-flat p-4 space-y-4">
           {transportType === 'frais' ? (
             // Frais: just a single date field
             <div className="space-y-2">
@@ -595,7 +596,7 @@ export default function EditTrip() {
                   type="date"
                   value={departureDate}
                   onChange={(e) => setDepartureDate(e.target.value)}
-                  className={cn('input-glass pl-10', errors.date && 'border-destructive')}
+                  className={cn('pl-10', errors.date && 'border-destructive')}
                   required
                 />
               </div>
@@ -614,7 +615,7 @@ export default function EditTrip() {
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
-                      className={cn('input-glass pl-10', errors.date && 'border-destructive')}
+                      className={cn('pl-10', errors.date && 'border-destructive')}
                     />
                   </div>
                   {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
@@ -628,7 +629,7 @@ export default function EditTrip() {
                         type="time"
                         value={departureTime}
                         onChange={(e) => setDepartureTime(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -642,7 +643,7 @@ export default function EditTrip() {
                         type="date"
                         value={returnDate}
                         onChange={(e) => setReturnDate(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -659,7 +660,7 @@ export default function EditTrip() {
                         type="date"
                         value={returnDate}
                         onChange={(e) => setReturnDate(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -671,7 +672,7 @@ export default function EditTrip() {
                         type="time"
                         value={arrivalTime}
                         onChange={(e) => setArrivalTime(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -683,7 +684,7 @@ export default function EditTrip() {
 
         {/* Distance & CO2 (hidden for logement) */}
         {(departure && arrival) && transportType !== 'logement' && (
-          <div className="glass-card p-4">
+          <div className="card-flat p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Route className="w-4 h-4 text-primary" />
@@ -698,10 +699,9 @@ export default function EditTrip() {
                 <span className="text-sm text-muted-foreground">Empreinte CO₂</span>
                 <span className={cn(
                   'font-semibold',
-                  estimatedCo2 < 50 ? 'text-transport-train' : 
-                  estimatedCo2 < 200 ? 'text-transport-car' : 'text-destructive'
+                  estimatedCo2 > 200 ? 'text-[hsl(var(--transport-car))]' : 'text-[hsl(var(--transport-train))]'
                 )}>
-                  {estimatedCo2 < 50 ? '🌱' : estimatedCo2 < 200 ? '🌿' : '🍂'} {estimatedCo2.toFixed(1)} kg
+                  {estimatedCo2.toFixed(1)} kg
                 </span>
               </div>
             )}
@@ -715,7 +715,7 @@ export default function EditTrip() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Motif du déplacement, références..."
-            className="input-glass min-h-[80px]"
+            className="min-h-[80px]"
           />
         </div>
 

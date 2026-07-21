@@ -1,6 +1,6 @@
-import { Trip, transportEmoji, getFlag } from '@/types/trip';
-import { Clock, MapPin, Euro, Route } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Trip } from '@/types/trip';
+import { Clock, Euro, Route } from 'lucide-react';
+import { TransportIcon } from '@/components/transport/TransportIcon';
 
 interface VoyageSummaryProps {
   trips: Trip[];
@@ -79,7 +79,7 @@ export function VoyageSummary({ trips }: VoyageSummaryProps) {
   }
 
   return (
-    <div className="glass-card p-4 animate-slide-up">
+    <div className="card-flat p-4 animate-slide-up">
       <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
         Récapitulatif
       </h2>
@@ -89,22 +89,23 @@ export function VoyageSummary({ trips }: VoyageSummaryProps) {
         {sortedTrips.map((trip, index) => (
           <div key={trip.id} className="py-3 first:pt-0">
             <div className="flex items-start gap-3">
-              {/* Transport icon */}
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                <span className="text-lg">{transportEmoji[trip.transportType]}</span>
-              </div>
+              <TransportIcon mode={trip.transportType} />
 
               {/* Trip details */}
               <div className="flex-1 min-w-0 space-y-1">
                 {/* Route */}
                 <div className="flex items-center gap-1.5 text-sm font-medium">
-                  <span className="flag-emoji text-xs">{getFlag(trip.departureCountry)}</span>
                   <span className="truncate">{trip.departureCity}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {trip.departureCountry}
+                  </span>
                   {trip.transportType !== 'frais' && trip.transportType !== 'logement' && (
                     <>
                       <span className="text-muted-foreground">→</span>
-                      <span className="flag-emoji text-xs">{getFlag(trip.arrivalCountry)}</span>
                       <span className="truncate">{trip.arrivalCity}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {trip.arrivalCountry}
+                      </span>
                     </>
                   )}
                 </div>

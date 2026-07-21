@@ -28,7 +28,7 @@ export function TripEstimateCard({
 }: TripEstimateCardProps) {
   if (isLoading) {
     return (
-      <div className="glass-card p-4 space-y-4">
+      <div className="card-flat p-4 space-y-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary animate-pulse" />
           <span className="text-sm font-medium">Estimation IA en cours...</span>
@@ -44,7 +44,7 @@ export function TripEstimateCard({
 
   if (error) {
     return (
-      <div className="glass-card p-4">
+      <div className="card-flat p-4">
         <div className="flex items-center gap-2 text-destructive">
           <AlertCircle className="w-4 h-4" />
           <span className="text-sm">{error}</span>
@@ -64,7 +64,7 @@ export function TripEstimateCard({
 
   if (!estimate && canEstimate) {
     return (
-      <div className="glass-card p-4">
+      <div className="card-flat p-4">
         <button
           type="button"
           onClick={onRequestEstimate}
@@ -95,7 +95,7 @@ export function TripEstimateCard({
   };
 
   return (
-    <div className="glass-card p-4 space-y-4">
+    <div className="card-flat p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />

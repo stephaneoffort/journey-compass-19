@@ -1,11 +1,9 @@
 import { useMemo } from 'react';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useVoyages } from '@/hooks/useVoyages';
-import { transportEmoji, getFlag } from '@/types/trip';
-import { Loader2, Plane, ArrowRight, Calendar, Route, Leaf, Plus } from 'lucide-react';
+import { VoyageCard } from '@/components/voyages/VoyageCard';
+import { Loader2, Plane } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 export default function VoyagesList() {
   const navigate = useNavigate();
@@ -29,6 +27,14 @@ export default function VoyagesList() {
     });
   };
 
+  const formatDateRange = (start?: string, end?: string) => {
+    if (!start) return '';
+    if (end && end !== start) {
+      return `${formatDate(start)} → ${formatDate(end)}`;
+    }
+    return formatDate(start);
+  };
+
   const handleAddTrip = (e: React.MouseEvent, voyageId: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -37,9 +43,19 @@ export default function VoyagesList() {
 
   return (
     <PageLayout>
-      <div className="page-header safe-top">
-        <h1 className="page-title">Mes voyages</h1>
-        <p className="page-subtitle">{voyages.length} voyage{voyages.length > 1 ? 's' : ''} enregistré{voyages.length > 1 ? 's' : ''}</p>
+      <div className="page-header safe-top flex items-end justify-between">
+        <div>
+          <h1 className="page-title">Mes voyages</h1>
+          <p className="page-subtitle">
+            {voyages.length} voyage{voyages.length > 1 ? 's' : ''} enregistré{voyages.length > 1 ? 's' : ''}
+          </p>
+        </div>
+        <Link
+          to="/add"
+          className="hidden sm:inline-flex items-center text-sm font-medium rounded-lg px-3.5 py-2 bg-foreground text-background hover:bg-foreground/90 transition-colors"
+        >
+          + Voyage
+        </Link>
       </div>
 
       <div className="px-5 space-y-4">
@@ -55,101 +71,29 @@ export default function VoyagesList() {
               className="block animate-slide-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="glass-card p-4 hover:border-primary/30 transition-colors">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-lg">
-                      {voyage.name || formatDate(voyage.startDate)}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{formatDate(voyage.startDate)}</span>
-                      {voyage.endDate && voyage.endDate !== voyage.startDate && (
-                        <>
-                          <span>→</span>
-                          <span>{formatDate(voyage.endDate)}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
-                      {voyage.trips.length} trajet{voyage.trips.length > 1 ? 's' : ''}
-                    </span>
-                    <button
-                      onClick={(e) => handleAddTrip(e, voyage.id)}
-                      className="w-7 h-7 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center transition-colors"
-                      title="Ajouter un déplacement"
-                    >
-                      <Plus className="w-4 h-4 text-primary" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Trip route summary */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-4 text-sm">
-                  {voyage.trips.map((trip, i) => (
-                    <div key={trip.id} className="flex items-center gap-1.5">
-                      {i === 0 && (
-                        <>
-                          <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
-                          <span>{trip.departureCity}</span>
-                        </>
-                      )}
-                      <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                      <span>{transportEmoji[trip.transportType]}</span>
-                      <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
-                      <span>{trip.arrivalCity}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 pt-3 border-t border-border">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Route className="w-3.5 h-3.5 text-primary" />
-                      <span className="font-semibold">{voyage.totalDistanceKm.toLocaleString()}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">km</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Leaf className={cn(
-                        'w-3.5 h-3.5',
-                        voyage.totalCo2Kg < 100 ? 'text-transport-train' : 
-                        voyage.totalCo2Kg < 500 ? 'text-transport-car' : 'text-destructive'
-                      )} />
-                      <span className={cn(
-                        'font-semibold',
-                        voyage.totalCo2Kg < 100 ? 'text-transport-train' : 
-                        voyage.totalCo2Kg < 500 ? 'text-transport-car' : 'text-destructive'
-                      )}>
-                        {voyage.totalCo2Kg.toFixed(0)}
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">kg CO₂</div>
-                  </div>
-                  {voyage.totalPrice > 0 && (
-                    <div className="text-center">
-                      <div className="font-semibold">{voyage.totalPrice.toFixed(0)}€</div>
-                      <div className="text-xs text-muted-foreground">total</div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <VoyageCard
+                name={voyage.name || formatDate(voyage.startDate)}
+                dateLabel={formatDateRange(voyage.startDate, voyage.endDate)}
+                trips={voyage.trips}
+                totalDistanceKm={voyage.totalDistanceKm}
+                totalCo2Kg={voyage.totalCo2Kg}
+                totalPrice={voyage.totalPrice}
+                onAddTrip={(e) => handleAddTrip(e, voyage.id)}
+              />
             </Link>
           ))
         ) : (
-          <div className="glass-card p-8 text-center">
+          <div className="rounded-xl border border-border p-8 text-center">
             <Plane className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="font-medium mb-2">Aucun voyage</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Commencez par créer votre premier voyage
             </p>
-            <Link to="/add">
-              <Button className="btn-primary">Créer un voyage</Button>
+            <Link
+              to="/add"
+              className="inline-flex items-center text-sm font-medium rounded-lg px-4 py-2.5 bg-foreground text-background hover:bg-foreground/90 transition-colors"
+            >
+              Créer un voyage
             </Link>
           </div>
         )}

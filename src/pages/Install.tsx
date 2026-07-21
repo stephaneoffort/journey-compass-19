@@ -40,7 +40,7 @@ export default function Install() {
 
       <div className="px-5 pb-8 space-y-6">
         {/* App preview card */}
-        <div className="glass-card p-6 text-center">
+        <div className="card-flat p-6 text-center">
           <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
             <Plane className="w-10 h-10 text-primary" />
           </div>
@@ -66,7 +66,7 @@ export default function Install() {
         </div>
 
         {/* Benefits */}
-        <div className="glass-card p-5 space-y-4">
+        <div className="card-flat p-5 space-y-4">
           <h3 className="font-semibold">Pourquoi installer ?</h3>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -101,7 +101,7 @@ export default function Install() {
 
         {/* Installation instructions */}
         {!isInstalled && (
-          <div className="glass-card p-5 space-y-4">
+          <div className="card-flat p-5 space-y-4">
             <h3 className="font-semibold">Comment installer ?</h3>
             
             {isAndroid && !isInstallable && (
@@ -179,7 +179,7 @@ export default function Install() {
 
         {/* Already installed message */}
         {isInstalled && (
-          <div className="glass-card p-5 text-center">
+          <div className="card-flat p-5 text-center">
             <Check className="w-12 h-12 mx-auto text-green-500 mb-3" />
             <h3 className="font-semibold">Application installée !</h3>
             <p className="text-sm text-muted-foreground mt-1">

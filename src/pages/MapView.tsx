@@ -2,11 +2,12 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { useTrips } from '@/hooks/useTrips';
 import { useVoyages } from '@/hooks/useVoyages';
 import { useCustomCities } from '@/hooks/useGeocodeCity';
-import { getFlag, transportEmoji, TransportType } from '@/types/trip';
-import { Globe, MapPin, Loader2 } from 'lucide-react';
+import { TransportType } from '@/types/trip';
+import { MapPin, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { TripMap } from '@/components/map/TripMap';
 import { TransportFilter } from '@/components/trips/TransportFilter';
+import { TransportIcon } from '@/components/transport/TransportIcon';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -106,7 +107,7 @@ export default function MapView() {
         )}
 
         {filteredTrips.length === 0 && selectedVoyageId !== 'all' && (
-          <div className="glass-card p-6 text-center text-muted-foreground">
+          <div className="card-flat p-6 text-center text-muted-foreground">
             <p>Aucun trajet dans ce voyage.</p>
           </div>
         )}
@@ -119,11 +120,11 @@ export default function MapView() {
               {destinations.map((dest, index) => (
                 <div
                   key={`${dest.city}-${dest.country}`}
-                  className="glass-card p-4 flex items-center gap-4 animate-slide-up"
+                  className="card-flat p-4 flex items-center gap-4 animate-slide-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="flag-emoji text-xl">{getFlag(dest.country)}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-primary">{dest.country}</span>
                   </div>
                   <div className="flex-1">
                     <div className="font-medium">{dest.city}</div>
@@ -146,26 +147,26 @@ export default function MapView() {
               {filteredTrips.slice(0, 5).map((trip, index) => (
                 <div
                   key={trip.id}
-                  className="glass-card p-4 flex items-center gap-3 animate-slide-up"
+                  className="card-flat p-4 flex items-center gap-3 animate-slide-up"
                   style={{ animationDelay: `${(destinations.length + index) * 50}ms` }}
                 >
-                  <span className="text-xl">{transportEmoji[trip.transportType]}</span>
-                  <div className="flex-1 flex items-center gap-2 text-sm">
-                    <span className="flag-emoji">{getFlag(trip.departureCountry)}</span>
+                  <TransportIcon mode={trip.transportType} badgeClassName="w-8 h-8" className="w-4 h-4" />
+                  <div className="flex-1 flex items-center gap-1.5 text-sm flex-wrap">
                     <span className="truncate">{trip.departureCity}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.departureCountry}</span>
                     <span className="text-muted-foreground">→</span>
                     {trip.via.length > 0 && (
                       <>
                         {trip.via.map((stop, i) => (
-                          <span key={i} className="flex items-center gap-1">
-                            <span className="flag-emoji">{getFlag(stop.country)}</span>
+                          <span key={i} className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{stop.country}</span>
                             <span className="text-muted-foreground">→</span>
                           </span>
                         ))}
                       </>
                     )}
-                    <span className="flag-emoji">{getFlag(trip.arrivalCountry)}</span>
                     <span className="truncate">{trip.arrivalCity}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{trip.arrivalCountry}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
                     {trip.distanceKm.toLocaleString('fr-FR')} km

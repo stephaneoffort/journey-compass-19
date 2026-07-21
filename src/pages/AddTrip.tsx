@@ -10,7 +10,8 @@ import { MetroStationSelect, isCityWithMetro } from '@/components/forms/MetroSta
 import { CarExpenses, CarExpensesData } from '@/components/forms/CarExpenses';
 import { TripEstimateCard } from '@/components/trips/TripEstimateCard';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
-import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
+import { Location, TransportType, BookingStatus, CarType, AccommodationType, transportLabels, co2PerKm } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -539,13 +540,13 @@ export default function AddTrip() {
                 type="button"
                 onClick={() => handleTransportTypeChange(type)}
                 className={cn(
-                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   transportType === type
                     ? `transport-${type} ring-2 ring-current`
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
                 )}
               >
-                <span className="text-2xl">{transportEmoji[type]}</span>
+                <TransportIcon mode={type} bare className="w-6 h-6" />
                 <span className="text-xs font-medium">{transportLabels[type]}</span>
               </button>
             ))}
@@ -562,13 +563,13 @@ export default function AddTrip() {
                 type="button"
                 onClick={() => handleTransportTypeChange(type)}
                 className={cn(
-                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                  'flex flex-col items-center gap-1 p-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   transportType === type
                     ? `transport-${type} ring-2 ring-current`
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
                 )}
               >
-                <span className="text-2xl">{transportEmoji[type]}</span>
+                <TransportIcon mode={type} bare className="w-6 h-6" />
                 <span className="text-xs font-medium">{transportLabels[type]}</span>
               </button>
             ))}
@@ -576,7 +577,7 @@ export default function AddTrip() {
         </div>
 
         {/* Transport-specific options */}
-        <div className="glass-card p-4 space-y-4">
+        <div className="card-flat p-4 space-y-4">
           <TransportOptions
             transportType={transportType}
             company={company}
@@ -606,7 +607,6 @@ export default function AddTrip() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="Ex: 125.50"
-                className="input-glass"
                 required
               />
             </div>
@@ -619,7 +619,7 @@ export default function AddTrip() {
         </div>
 
         {/* Departure & Arrival */}
-        <div className="glass-card p-4 space-y-4">
+        <div className="card-flat p-4 space-y-4">
           {transportType === 'frais' ? (
             // Frais divers: optional single city
             <div className="space-y-2">
@@ -732,18 +732,18 @@ export default function AddTrip() {
               {departure && arrival && (
                 <div className="flex justify-center py-2">
                   <div className="flex items-center gap-2 text-sm flex-wrap">
-                    <span className="flag-emoji">{getFlag(departure.country)}</span>
                     <span>{departure.city}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{departure.country}</span>
                     <ArrowRight className="w-4 h-4 text-primary" />
                     {stopovers.filter(s => s.city).map((stop, i) => (
                       <span key={i} className="flex items-center gap-2">
-                        <span className="flag-emoji">{getFlag(stop.country)}</span>
                         <span>{stop.city}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{stop.country}</span>
                         <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       </span>
                     ))}
-                    <span className="flag-emoji">{getFlag(arrival.country)}</span>
                     <span>{arrival.city}</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{arrival.country}</span>
                   </div>
                 </div>
               )}
@@ -786,7 +786,7 @@ export default function AddTrip() {
         </div>
 
         {/* Dates & Times - Hide times for logement and frais */}
-        <div className="glass-card p-4 space-y-4">
+        <div className="card-flat p-4 space-y-4">
           {transportType === 'frais' ? (
             // Frais: date + price field
             <div className="space-y-4">
@@ -798,7 +798,7 @@ export default function AddTrip() {
                     type="date"
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
-                    className="input-glass pl-10"
+                    className="pl-10"
                     required
                   />
                 </div>
@@ -814,7 +814,7 @@ export default function AddTrip() {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="Ex: 25.50"
-                    className="input-glass pl-10"
+                    className="pl-10"
                   />
                 </div>
               </div>
@@ -832,7 +832,7 @@ export default function AddTrip() {
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
-                      className="input-glass pl-10"
+                      className="pl-10"
                       required
                     />
                   </div>
@@ -846,7 +846,7 @@ export default function AddTrip() {
                         type="time"
                         value={departureTime}
                         onChange={(e) => setDepartureTime(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -860,7 +860,7 @@ export default function AddTrip() {
                         type="date"
                         value={returnDate}
                         onChange={(e) => setReturnDate(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -877,7 +877,7 @@ export default function AddTrip() {
                         type="date"
                         value={returnDate}
                         onChange={(e) => setReturnDate(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -889,7 +889,7 @@ export default function AddTrip() {
                         type="time"
                         value={arrivalTime}
                         onChange={(e) => setArrivalTime(e.target.value)}
-                        className="input-glass pl-10"
+                        className="pl-10"
                       />
                     </div>
                   </div>
@@ -901,7 +901,7 @@ export default function AddTrip() {
 
         {/* Distance & CO2 - Auto-calculated (hidden for logement and frais) */}
         {(departure && arrival) && transportType !== 'logement' && transportType !== 'frais' && (
-          <div className="glass-card p-4">
+          <div className="card-flat p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Route className="w-4 h-4 text-primary" />
@@ -916,10 +916,9 @@ export default function AddTrip() {
                 <span className="text-sm text-muted-foreground">Empreinte CO₂ (basique)</span>
                 <span className={cn(
                   'font-semibold',
-                  estimatedCo2 < 50 ? 'text-transport-train' : 
-                  estimatedCo2 < 200 ? 'text-transport-car' : 'text-destructive'
+                  estimatedCo2 > 200 ? 'text-[hsl(var(--transport-car))]' : 'text-[hsl(var(--transport-train))]'
                 )}>
-                  {estimatedCo2 < 50 ? '🌱' : estimatedCo2 < 200 ? '🌿' : '🍂'} {estimatedCo2.toFixed(1)} kg
+                  {estimatedCo2.toFixed(1)} kg
                 </span>
               </div>
             )}
@@ -944,7 +943,7 @@ export default function AddTrip() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Motif du déplacement, références..."
-            className="input-glass min-h-[100px]"
+            className="min-h-[100px]"
           />
         </div>
 

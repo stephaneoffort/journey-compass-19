@@ -34,7 +34,8 @@
     --transport-bus: 271 81% 50%;
     --transport-boat: 186 78% 42%;
     --transport-metro: 340 82% 48%;
-    
+    --transport-logement: 45 90% 50%;
+
     /* Gradients */
     --gradient-plane: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(199 89% 38%) 100%);
     --gradient-train: linear-gradient(135deg, hsl(142 71% 40%) 0%, hsl(142 71% 30%) 100%);
@@ -87,7 +88,8 @@
     --transport-bus: 271 81% 56%;
     --transport-boat: 186 78% 46%;
     --transport-metro: 340 82% 52%;
-    
+    --transport-logement: 45 90% 58%;
+
     /* Gradients */
     --gradient-plane: linear-gradient(135deg, hsl(199 89% 58%) 0%, hsl(199 89% 38%) 100%);
     --gradient-train: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(142 71% 35%) 100%);
@@ -123,9 +125,6 @@
     font-family: 'Inter', sans-serif;
   }
   
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
-  }
 }
 
 @layer components {
@@ -139,47 +138,55 @@
   }
   
   .kpi-card {
-    @apply glass-card p-4 relative overflow-hidden;
+    @apply card-flat p-4 relative overflow-hidden;
   }
-  
-  .kpi-card::before {
-    content: '';
-    @apply absolute inset-0 opacity-10;
-    background: var(--kpi-gradient);
-    border-radius: inherit;
-  }
-  
+
   .transport-badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
   }
-  
+
   .transport-plane {
-    --kpi-gradient: var(--gradient-plane);
     @apply bg-[hsl(var(--transport-plane))]/15 text-[hsl(var(--transport-plane))];
   }
-  
+
   .transport-train {
-    --kpi-gradient: var(--gradient-train);
     @apply bg-[hsl(var(--transport-train))]/15 text-[hsl(var(--transport-train))];
   }
-  
+
   .transport-car {
-    --kpi-gradient: var(--gradient-car);
     @apply bg-[hsl(var(--transport-car))]/15 text-[hsl(var(--transport-car))];
   }
-  
+
   .transport-bus {
-    --kpi-gradient: var(--gradient-bus);
     @apply bg-[hsl(var(--transport-bus))]/15 text-[hsl(var(--transport-bus))];
   }
-  
-  .trip-card {
-    @apply glass-card p-4 flex items-center gap-4 transition-all duration-300;
+
+  .transport-boat {
+    @apply bg-[hsl(var(--transport-boat))]/15 text-[hsl(var(--transport-boat))];
   }
-  
+
+  .transport-metro {
+    @apply bg-[hsl(var(--transport-metro))]/15 text-[hsl(var(--transport-metro))];
+  }
+
+  .transport-logement {
+    @apply bg-[hsl(var(--transport-logement))]/15 text-[hsl(var(--transport-logement))];
+  }
+
+  .transport-frais {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  .card-flat {
+    @apply bg-card border border-border rounded-xl;
+  }
+
+  .trip-card {
+    @apply card-flat p-4 flex items-center gap-4 transition-colors;
+  }
+
   .trip-card:hover {
-    @apply bg-card border-white/10;
-    transform: translateX(4px);
+    @apply bg-secondary/40;
   }
   
   .input-glass {
@@ -209,15 +216,10 @@
   }
   
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-xl px-6 py-3 transition-all;
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.4);
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-xl px-6 py-3 transition-colors;
   }
-  
-  .btn-primary:hover {
-    box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.6);
-    transform: translateY(-1px);
-  }
-  
+
+
   .nav-item {
     @apply flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all;
   }
@@ -244,7 +246,6 @@
   
   .stat-value {
     @apply text-3xl font-bold tracking-tight;
-    font-family: 'Space Grotesk', sans-serif;
   }
   
   .stat-label {

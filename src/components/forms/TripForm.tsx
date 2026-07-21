@@ -8,7 +8,8 @@ import { StopoverInput } from './StopoverInput';
 import { TransportOptions } from './TransportOptions';
 import { CityData, getCityCoordinates } from '@/data/cityCoordinates';
 import { Station } from '@/data/parisStations';
-import { Location, TransportType, BookingStatus, CarType, transportEmoji, transportLabels, co2PerKm, getFlag } from '@/types/trip';
+import { Location, TransportType, BookingStatus, CarType, transportLabels, co2PerKm } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -300,13 +301,13 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               type="button"
               onClick={() => handleTransportTypeChange(type)}
               className={cn(
-                'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+                'flex flex-col items-center gap-1 p-3 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 transportType === type
                   ? `transport-${type} ring-2 ring-current`
                   : 'bg-secondary text-muted-foreground hover:text-foreground'
               )}
             >
-              <span className="text-2xl">{transportEmoji[type]}</span>
+              <TransportIcon mode={type} bare className="w-6 h-6" />
               <span className="text-xs font-medium">{transportLabels[type]}</span>
             </button>
           ))}
@@ -314,7 +315,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       </div>
 
       {/* Transport-specific options */}
-      <div className="glass-card p-4 space-y-4">
+      <div className="card-flat p-4 space-y-4">
         <TransportOptions
           transportType={transportType}
           company={company}
@@ -341,7 +342,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="Ex: 125.50"
-              className={cn('input-glass', errors.price && 'border-destructive')}
+              className={cn(errors.price && 'border-destructive')}
             />
             {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
           </div>
@@ -423,7 +424,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       </div>
 
       {/* Departure & Arrival */}
-      <div className="glass-card p-4 space-y-4">
+      <div className="card-flat p-4 space-y-4">
         {isMetroInParis ? (
           <>
             {/* Metro mode: first select cities, then stations */}
@@ -561,18 +562,18 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
             {departure && arrival && (
               <div className="flex justify-center py-2">
                 <div className="flex items-center gap-2 text-sm flex-wrap">
-                  <span className="flag-emoji">{getFlag(departure.country)}</span>
                   <span>{departureBusStation || departureTrainStation || departure.city}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{departure.country}</span>
                   <ArrowRight className="w-4 h-4 text-primary" />
                   {stopovers.filter(s => s.city).map((stop, i) => (
                     <span key={i} className="flex items-center gap-2">
-                      <span className="flag-emoji">{getFlag(stop.country)}</span>
                       <span>{stop.city}</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{stop.country}</span>
                       <ArrowRight className="w-4 h-4 text-muted-foreground" />
                     </span>
                   ))}
-                  <span className="flag-emoji">{getFlag(arrival.country)}</span>
                   <span>{arrivalBusStation || arrivalTrainStation || arrival.city}</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{arrival.country}</span>
                 </div>
               </div>
             )}
@@ -619,7 +620,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
       </div>
 
       {/* Dates & Times */}
-      <div className="glass-card p-4 space-y-4">
+      <div className="card-flat p-4 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-muted-foreground">Date de départ</Label>
@@ -629,7 +630,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                 type="date"
                 value={departureDate}
                 onChange={(e) => setDepartureDate(e.target.value)}
-                className={cn('input-glass pl-10', errors.date && 'border-destructive')}
+                className={cn('pl-10', errors.date && 'border-destructive')}
               />
             </div>
             {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
@@ -642,7 +643,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                 type="time"
                 value={departureTime}
                 onChange={(e) => setDepartureTime(e.target.value)}
-                className="input-glass pl-10"
+                className="pl-10"
               />
             </div>
           </div>
@@ -657,7 +658,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                 type="date"
                 value={returnDate}
                 onChange={(e) => setReturnDate(e.target.value)}
-                className="input-glass pl-10"
+                className="pl-10"
               />
             </div>
           </div>
@@ -669,7 +670,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
                 type="time"
                 value={arrivalTime}
                 onChange={(e) => setArrivalTime(e.target.value)}
-                className="input-glass pl-10"
+                className="pl-10"
               />
             </div>
           </div>
@@ -678,7 +679,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
 
       {/* Distance & CO2 */}
       {((departure && arrival) || (departureStation && arrivalStation)) && (
-        <div className="glass-card p-4">
+        <div className="card-flat p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Route className="w-4 h-4 text-primary" />
@@ -695,8 +696,11 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
           {(isMetroInParis || estimatedCo2 > 0) && (
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
               <span className="text-sm text-muted-foreground">Empreinte CO₂</span>
-              <span className="font-semibold text-transport-train">
-                🌱 {isMetroInParis ? '0.04' : estimatedCo2.toFixed(1)} kg
+              <span className={cn(
+                'font-semibold',
+                estimatedCo2 > 200 ? 'text-[hsl(var(--transport-car))]' : 'text-[hsl(var(--transport-train))]'
+              )}>
+                {isMetroInParis ? '0.04' : estimatedCo2.toFixed(1)} kg
               </span>
             </div>
           )}
@@ -710,7 +714,7 @@ export function TripForm({ onSubmit, isLoading, submitLabel = 'Enregistrer', tri
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Motif du déplacement, références..."
-          className="input-glass min-h-[80px]"
+          className="min-h-[80px]"
         />
       </div>
 

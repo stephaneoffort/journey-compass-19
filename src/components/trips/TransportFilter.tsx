@@ -1,4 +1,6 @@
-import { TransportType, transportEmoji, transportLabels } from '@/types/trip';
+import { TransportType, transportLabels } from '@/types/trip';
+import { TransportIcon } from '@/components/transport/TransportIcon';
+import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TransportFilterProps {
@@ -16,7 +18,7 @@ export function TransportFilter({ selected, onChange }: TransportFilterProps) {
           key={type}
           onClick={() => onChange(type)}
           className={cn(
-            'flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all',
+            'flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             selected === type
               ? type === 'all'
                 ? 'bg-primary text-primary-foreground'
@@ -24,7 +26,7 @@ export function TransportFilter({ selected, onChange }: TransportFilterProps) {
               : 'bg-secondary text-muted-foreground hover:text-foreground'
           )}
         >
-          {type === 'all' ? '🌍' : transportEmoji[type]}
+          {type === 'all' ? <Globe className="w-4 h-4" /> : <TransportIcon mode={type} bare className="w-4 h-4" />}
           <span>{type === 'all' ? 'Tous' : transportLabels[type]}</span>
         </button>
       ))}

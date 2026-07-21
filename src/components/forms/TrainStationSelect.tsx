@@ -56,7 +56,7 @@ export function TrainStationSelect({ cityName, countryCode, value, onChange, lab
     <div className="space-y-2">
       <Label className="text-muted-foreground text-xs">{label}</Label>
       <Select value={value || ''} onValueChange={(val) => onChange(val || null)}>
-        <SelectTrigger className="input-glass">
+        <SelectTrigger>
           <SelectValue placeholder="Sélectionner une gare..." />
         </SelectTrigger>
         <SelectContent>
