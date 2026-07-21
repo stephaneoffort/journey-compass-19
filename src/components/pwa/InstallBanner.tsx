@@ -34,7 +34,7 @@ export function InstallBanner() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 safe-top">
+    <div className="sticky top-0 left-0 right-0 z-50 safe-top">
       <div className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Download className="w-5 h-5 shrink-0" />
